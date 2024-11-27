@@ -1,6 +1,6 @@
 import tornado.web
 
-from ..views import BaseHandler
+from views import BaseHandler
 
 
 class NotFoundErrorHandler(BaseHandler):

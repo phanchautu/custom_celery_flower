@@ -1,6 +1,6 @@
 import prometheus_client
 
-from ..views import BaseHandler
+from views import BaseHandler
 
 
 class Metrics(BaseHandler):

@@ -1,45 +1,79 @@
-version: '3'
+version: '3.7'
 services:
   redis:
     image: redis:alpine
+    hostname: redis
+    command: ["redis-server", "--requirepass", "w3ai-aioz_ai=2024"]
     ports:
       - 6379:6379
-  prometheus:
-    image: prom/prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - 9090:9090
-  grafana:
-    image: grafana/grafana
-    depends_on:
-      - prometheus
-    ports:
-      - 3000:3000
-  worker:
-    build: ./
-    entrypoint: celery
-    command: -A tasks worker -l info -E
-    user: nobody
-    volumes:
-      - ./examples:/data
+      - redis_data:/data
     environment:
-      CELERY_BROKER_URL: redis://redis
-      CELERY_RESULT_BACKEND: redis://redis
-      PYTHONPATH: /data
-    depends_on:
-      - redis
-  flower:
-    build: ./
-    command: celery -A tasks flower
+      - REDIS_PASSWORD=w3ai-aioz_ai=2024
+    networks:
+      - flower-networks
+    healthcheck:
+      test: [ "CMD", "redis-cli","-a", "w3ai-aioz_ai=2024", "--raw", "incr", "ping" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:3.13.1-management
+    container_name: rabbitmq_test
+    hostname: rabbitmq
     volumes:
-      - ./examples:/data
-    working_dir: /data
+      - rabbitmq:/var/lib/rabbitmq/
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - flower-networks
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 20s
+      retries: 5
+ 
+
+  custom_flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: custom-flower-1
+    
     ports:
       - 5555:5555
     environment:
-      CELERY_BROKER_URL: redis://redis
-      CELERY_RESULT_BACKEND: redis://redis
-    depends_on:
-      - worker
+      - BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - FLOWER_BROKER_API=http://guest:guest@rabbitmq:15672/api/
+      - FLOWER_BASIC_AUTH=admin:admin
+      - FLOWER_OPERATOR_AUTH=operator:operator
+      - FLOWER_GUEST_AUTH=guest:guest
+      - FLOWER_PERSISTENT=True
+      - FLOWER_DB=/data/flower_db
+      - FLOWER_ENABLE_EVENT=True
+      - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
+      - FLOWER_REDIS_HOST=redis
+      - FLOWER_REDIS_DATABASE_TABLE=1
+    volumes:
+      - flower:/data
+    links:
       - redis
+      - rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy 
+      redis:
+        condition: service_healthy      
+    networks:
+      - flower-networks
+
+volumes:
+  flower:
+  rabbitmq:
+  redis_data:
+  custom_flower:
+networks:
+  flower-networks:

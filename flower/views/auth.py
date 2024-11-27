@@ -10,8 +10,8 @@ import tornado.web
 from celery.utils.imports import instantiate
 from tornado.options import options
 
-from ..views import BaseHandler
-from ..views.error import NotFoundErrorHandler
+from views import BaseHandler
+from views.error import NotFoundErrorHandler
 
 # pylint: disable=invalid-name
 

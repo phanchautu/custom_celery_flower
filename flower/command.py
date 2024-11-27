@@ -3,6 +3,7 @@ import sys
 import atexit
 import signal
 import logging
+import redis
 
 from pprint import pformat
 
@@ -14,15 +15,14 @@ from tornado.options import parse_command_line, parse_config_file
 from tornado.log import enable_pretty_logging
 from celery.bin.base import CeleryCommand
 
-from .app import Flower
-from .urls import settings
-from .utils import abs_path, prepend_url, strtobool
-from .options import DEFAULT_CONFIG_FILE, default_options
-from .views.auth import validate_auth_option
+from app import Flower
+from urls import settings
+from utils import abs_path, prepend_url, strtobool
+from options import DEFAULT_CONFIG_FILE, default_options
+from views.auth import validate_auth_option
 
 logger = logging.getLogger(__name__)
 ENV_VAR_PREFIX = 'FLOWER_'
-
 
 def sigterm_handler(signum, _):
     logger.info('%s detected, shutting down', signum)
@@ -35,7 +35,7 @@ def sigterm_handler(signum, _):
                })
 @click.argument("tornado_argv", nargs=-1, type=click.UNPROCESSED)
 @click.pass_context
-def flower(ctx, tornado_argv):
+def flower_aioz(ctx, tornado_argv):
     """Web based tool for monitoring and administrating Celery clusters."""
     warn_about_celery_args_used_in_flower_command(ctx, tornado_argv)
     apply_env_options()
@@ -49,6 +49,8 @@ def flower(ctx, tornado_argv):
 
     atexit.register(flower_app.stop)
     signal.signal(signal.SIGTERM, sigterm_handler)
+
+    print(options.redis_password)
 
     if not ctx.obj.quiet:
         print_banner(app, 'ssl_options' in settings)
@@ -82,7 +84,6 @@ def apply_env_options():
 def apply_options(prog_name, argv):
     "apply options passed through the configuration file"
     argv = list(filter(is_flower_option, argv))
-    # parse the command line to get --conf option
     parse_command_line([prog_name] + argv)
     try:
         parse_config_file(os.path.abspath(options.conf), final=False)
@@ -166,7 +167,7 @@ def print_banner(app, ssl):
             prefix_str = ''
 
         logger.info(
-            "Visit me at http%s://%s:%s%s", 's' if ssl else '',
+            "Aioz flower V1.2 Visit me at http%s://%s:%s%s", 's' if ssl else '',
             options.address or '0.0.0.0', options.port,
             prefix_str
         )

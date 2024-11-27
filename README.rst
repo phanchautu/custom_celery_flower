@@ -48,7 +48,7 @@ The development version can be installed from Github ::
 
     $ pip install https://github.com/mher/flower/zipball/master#egg=flower
 
-Usage
+Usage with custom version
 -----
 
 To run Flower, you need to provide the broker URL ::

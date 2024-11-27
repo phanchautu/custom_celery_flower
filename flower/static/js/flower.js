@@ -483,7 +483,7 @@ var flower = (function () {
                 defaultContent: 0
             }, {
                 targets: 3,
-                data: 'task-received',
+                data: 'processed',
                 className: "text-center",
                 width: "10%",
                 defaultContent: 0
@@ -526,7 +526,7 @@ var flower = (function () {
         if (autorefresh !== 0) {
             setInterval( function () {
                 $('#workers-table').DataTable().ajax.reload(null, false);
-            }, autorefresh_interval * 1000);
+            }, autorefresh_interval * 5000);
         }
 
     });

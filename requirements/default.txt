@@ -1,5 +1,6 @@
-celery>=5.0.5
-tornado>=5.0.0,<7.0.0
-prometheus_client>=0.8.0
-humanize
-pytz
+celery==5.1.2
+tornado==6.1
+humanize==3.14.0
+pytz==2024.2
+redis==4.3.6
+prometheus-client==0.17.1

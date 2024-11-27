@@ -1,0 +1,2 @@
+user default on >w3ai-aioz_ai=2024 ~* +@all allchannels
+user admin on >w3.aioz.ai2024 ~* +@all allchannels

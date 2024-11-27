@@ -12,9 +12,9 @@ from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
 from tornado.web import HTTPError
 
-from ..utils import tasks
-from ..utils.broker import Broker
-from . import BaseApiHandler
+from utils import tasks
+from utils.broker import Broker
+from api import BaseApiHandler
 
 logger = logging.getLogger(__name__)
 

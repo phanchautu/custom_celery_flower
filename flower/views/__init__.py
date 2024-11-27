@@ -4,17 +4,18 @@ import traceback
 import copy
 import logging
 import hmac
+import redis
 
 from base64 import b64decode
 
 import tornado
 
-from ..utils import template, bugreport, strtobool
+from utils import template, bugreport, strtobool
 
 logger = logging.getLogger(__name__)
 
-
 class BaseHandler(tornado.web.RequestHandler):
+    
     def set_default_headers(self):
         if not (self.application.options.basic_auth or self.application.options.auth):
             self.set_header("Access-Control-Allow-Origin", "*")
@@ -63,23 +64,53 @@ class BaseHandler(tornado.web.RequestHandler):
             self.finish()
 
     def get_current_user(self):
-        # Basic Auth
         basic_auth = self.application.options.basic_auth
-        if basic_auth:
+        operator_auth = self.application.options.operator_auth
+        guest_auth = self.application.options.guest_auth
+        redis_pass = self.application.options.redis_password
+        if basic_auth or operator_auth or guest_auth :
             auth_header = self.request.headers.get("Authorization", "")
             try:
                 basic, credentials = auth_header.split()
                 credentials = b64decode(credentials.encode()).decode()
+                admin_login_success = True
+                operator_login_success = True
+                guest_login_success = True
+                
                 if basic != 'Basic':
                     raise tornado.web.HTTPError(401)
                 for stored_credential in basic_auth:
                     if hmac.compare_digest(stored_credential, credentials):
+                        self.access_level = 'admin'
+                        admin_login_success = True
+                        user = self.get_secure_cookie('user')
                         break
                 else:
+                    admin_login_success = False
+
+                for stored_credential in operator_auth:
+                    if hmac.compare_digest(stored_credential, credentials):
+                        self.access_level = 'operator'
+                        operator_login_success = True
+                        break
+                else:
+                    operator_login_success = False
+
+                for stored_credential in guest_auth:
+                    if hmac.compare_digest(stored_credential, credentials):
+                        self.access_level = 'guest'
+                        guest_login_success = True
+                        break
+                else:
+                    guest_login_success = False
+
+                if not admin_login_success and not operator_login_success and not guest_login_success:
                     raise tornado.web.HTTPError(401)
+
             except ValueError as exc:
                 raise tornado.web.HTTPError(401) from exc
-
+        else:
+            self.access_level = 'admin'
         # OAuth2
         if not self.application.options.auth:
             return True
@@ -94,6 +125,7 @@ class BaseHandler(tornado.web.RequestHandler):
     # pylint: disable=dangerous-default-value
     def get_argument(self, name, default=[], strip=True, type=None):
         arg = super().get_argument(name, default, strip)
+        
         if arg and isinstance(arg, str):
             arg = tornado.escape.xhtml_escape(arg)
         if type is not None:
@@ -134,3 +166,10 @@ class BaseHandler(tornado.web.RequestHandler):
             queues = set([self.capp.conf.task_default_queue]) |\
                 {q.name for q in self.capp.conf.task_queues or [] if q.name}
         return sorted(queues)
+
+    def ping_to_redis(redis_server):
+        try:
+            redis_server.ping()
+            return True
+        except Exception:
+            return False

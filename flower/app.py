@@ -5,15 +5,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 import celery
 import tornado.web
+import redis
 
 from tornado import ioloop
 from tornado.httpserver import HTTPServer
 from tornado.web import url
 
-from .urls import handlers as default_handlers
-from .events import Events
-from .inspector import Inspector
-from .options import default_options
+from urls import handlers as default_handlers
+from events import Events
+from inspector import Inspector
+from options import default_options
 
 
 logger = logging.getLogger(__name__)
@@ -64,6 +65,15 @@ class Flower(tornado.web.Application):
             max_workers_in_memory=self.options.max_workers,
             max_tasks_in_memory=self.options.max_tasks)
         self.started = False
+        self.redis_server = redis.StrictRedis(host=str(self.options.redis_host), port=6379, password= str(self.options.redis_password), db=int(self.options.redis_database_table))
+
+        # try:
+            
+        #     redis_server.ping()
+        #     return redis_server
+        # except Exception:
+        #     logger.exception("Failed to connect to redis")
+        #     return None
 
     def start(self):
         self.events.start()

@@ -2,8 +2,8 @@ import os
 
 import tornado.web
 
-from ..utils import strtobool
-from ..views import BaseHandler
+from utils import strtobool
+from views import BaseHandler
 
 
 class BaseApiHandler(BaseHandler):

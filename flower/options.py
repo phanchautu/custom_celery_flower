@@ -68,6 +68,17 @@ define("auth_provider", default=None, type=str, help="auth handler class")
 define("url_prefix", type=str, help="base url prefix")
 define("task_runtime_metric_buckets", type=float, default=Histogram.DEFAULT_BUCKETS,
        multiple=True, help="histogram latency bucket value")
-
+define("save_offline_worker", type=bool, default=True,
+       help="Enable offline worker offline")
+define("operator_auth", type=str, default=None, multiple=True,
+       help="operator password")
+define("guest_auth", type=str, default=None, multiple=True,
+       help="guest password")
+define("redis_host", type=str, default="redis", multiple=False,
+       help="redis host name")
+define("redis_password", type=str, default=None, multiple=False,
+       help="redis database authentication")
+define("redis_database_table", type=int, default=0, multiple=False,
+       help="redis database table")
 
 default_options = options

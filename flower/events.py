@@ -56,7 +56,6 @@ class PrometheusMetrics:
 
 class EventsState(State):
     # EventsState object is created and accessed only from ioloop thread
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.counter = collections.defaultdict(Counter)
@@ -65,12 +64,9 @@ class EventsState(State):
     def event(self, event):
         # Save the event
         super().event(event)
-
         worker_name = event['hostname']
         event_type = event['type']
-
         self.counter[worker_name][event_type] += 1
-
         if event_type.startswith('task-'):
             task_id = event['uuid']
             task = self.tasks.get(task_id)
@@ -111,11 +107,11 @@ class EventsState(State):
 
 
 class Events(threading.Thread):
-    events_enable_interval = 5000
+    events_enable_interval = 15000
 
     # pylint: disable=too-many-arguments
     def __init__(self, capp, io_loop, db=None, persistent=False,
-                 enable_events=True, state_save_interval=0,
+                 enable_events=True, state_save_interval=10,
                  **kwargs):
         threading.Thread.__init__(self)
         self.daemon = True
@@ -171,6 +167,7 @@ class Events(threading.Thread):
     def run(self):
         try_interval = 1
         while True:
+            print("Threading")
             try:
                 try_interval *= 2
 

@@ -2,8 +2,8 @@ import logging
 
 from tornado import web
 
-from ..utils.broker import Broker
-from ..views import BaseHandler
+from utils.broker import Broker
+from views import BaseHandler
 
 logger = logging.getLogger(__name__)
 
@@ -32,4 +32,4 @@ class BrokerView(BaseHandler):
 
         self.render("broker.html",
                     broker_url=app.capp.connection().as_uri(),
-                    queues=queues)
+                    queues=queues,permission=self.access_level)
