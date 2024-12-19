@@ -65,7 +65,20 @@ class Flower(tornado.web.Application):
             max_workers_in_memory=self.options.max_workers,
             max_tasks_in_memory=self.options.max_tasks)
         self.started = False
+        print(self.options.redis_host)
+        print(self.options.redis_password)
+        print(self.options.redis_database_table)
+        self.option_admin_user = self.options.basic_auth
+        self.option_operator_user = self.options.operator_auth
+        self.option_guest_user = self.options.guest_auth
+
+        self.current_admin_user = self.options.basic_auth
+        self.current_operator_user = self.options.operator_auth
+        self.current_guest_user = self.options.guest_auth
+        self.login_status = True
+
         self.redis_server = redis.StrictRedis(host=str(self.options.redis_host), port=6379, password= str(self.options.redis_password), db=int(self.options.redis_database_table))
+        self.user_redis_server = redis.StrictRedis(host=str(self.options.redis_host), port=6379, password= str(self.options.redis_password), db=int(self.options.user_database_table))
 
         # try:
             

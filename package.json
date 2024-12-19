@@ -1,0 +1,25 @@
+{
+  "name": "flower",
+  "version": "1.0.0",
+  "description": "Flower ======",
+  "type": "module",
+  "main": "w3s_upload.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.aioz.io/W3AI-2024/custom-celery-flower.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.705.0",
+    "axios": "^1.7.9"
+  }
+}

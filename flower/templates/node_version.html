@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+{% module Template("navbar.html", active_tab="node-version",permission=permission, node_url = node_url) %}
+{% end %}
+
+
+{% block container %}
+<input type="hidden" value="{{ time }}" id='time'>
+<input type="hidden" value="{{ columns }}" id='columns'>
+
+
+<div class="container-fluid columns">
+  <!-- <div>
+    <label >API key : </label>
+    <input id="api-key-text" type="text">
+  </div> -->
+
+  <div >
+    <label >Select node type : </label>
+    <select id="product_type" class="w-200">
+      <option value="training">training</option>
+      <option value="inference">inference</option>
+      <option value="node_app">node_app</option>
+    </select> 
+  </div>
+
+  <div >
+    <label >Select Product type : </label>
+    <select id="node_type" class="w-200 mt-3">
+      <option value="all">All</option>
+      <option value="release">Release</option>
+    </select>
+  </div>
+  <!-- <button id="load_node_button" class="btn btn-primary" type="button">Load</button> -->
+</div>
+
+<!-- table-striped -->
+<div class="container-fluid mt-3">
+  <table width="50%" id="node-version-table" class="table table-bordered row-border table-hover font-size:small">
+    <thead>
+      <tr>
+        <th style="width: 5%;">Version</th>
+        <th style="width: 5%;">State</th>
+        <th class="text-center" style="width: 5%;">Time stamp</th>
+        <th width="200" style="width: 5%;" >Linux</th>
+        <th width="200" >Windown</th>
+        <th width="200" >Mac-Intel Chip</th>
+        <th width="200" > Mac-Apple Chip</th>
+        <th width="200">Action</th>
+      </tr>
+    </thead>
+    <tbody id="node-version-body" style="font-size: small;">
+      <!-- {% for node in nodes %}
+      <tr style="color: aqua;">
+        <td > {{node['version_info']['version']}} </td>
+        <td > {{node['state']}} </td>
+        <td >{{humanize(node['timestamp'], type='time')}}</td>
+        <td >{{node['version_info']['url']['linux']}}</td>
+        <td >{{node['version_info']['url']['windows']}}</td>
+        <td >{{node['version_info']['url']['macOs_intel']}}</td>
+        <td >{{node['version_info']['url']['macOs_apple']}}</td>
+      </tr>
+      {% end %} -->
+    </tbody>
+  </table>
+</div>
+
+
+<div class="mt-5">Upload version</div>
+
+{% if permission == "guest" or permission=="operator" %}
+  <div>
+    <h3 id="workername">Access denied</h3>
+  </div>
+{% elif permission == "admin"%}
+
+  <div class="container background-color:#eee" style="width:100%; margin-left:1cm; margin-right: 1cm;">
+
+    <div class="row mt-1" >
+      <label class="col-sm-10" >Select Product type : </label>
+      <p id="upload_product_type" class="w-200 margin-left:auto col-sm-2"> training</p> 
+    </div>
+
+    <div class="row mt-1" >
+      <label class="col-sm-10" >Node status  : </label>
+      <!-- <select id="upload_release_type" class="w-200 margin-left:20 col-sm-2">
+        <option value="pending">pending</option>
+      </select> -->
+      <p class="w-200 margin-left:20 col-sm-2">pending</p>
+    </div>
+
+    <div class="row mt-1" >
+      <label class="col-sm-10" >Version : </label>
+      <input type="text" id="node_version_text" class="col-sm-2"/>
+    </div>
+
+    <form class="row mt-1" >
+      <div class="col-sm-10 mt-1">
+        <label for="file_linux"  >Linux url : </label>
+        <input type="text" class="col-sm-6 mt-1" id="linux_url_result" style="font-size: smaller; color: blue;">
+        <input type="file" id="file_linux" name="file" required>
+      </div>
+      <button id="attach_file_linux" type="button" class="col-sm-2">Upload file</button>
+      
+    </form>
+
+
+    <form class="row mt-1">
+      <div class="col-sm-10 mt-1" >
+        <label for="file_win" >Windows url : </label>
+        <input type="text"  class="col-sm-6 mt-1" id="win_url_result" style="font-size: smaller; color: blue;">
+        <input type="file" id="file_win" name="file" required>
+      </div>
+      <button id="attach_file_win" type="button" class="col-sm-2">Upload file</button>
+    </form>
+    
+    <form class="row mt-1">
+      <div class="col-sm-10 mt-1" >
+        <label for="file_mac_intel"  >MacOS-Intel url : </label>
+        <input type="text" class="col-sm-6 mt-1" id="mac_intel_url_result" style="font-size: smaller;color: blue; ">
+        <input type="file" id="file_mac_intel" name="file" required>
+      </div>
+      <button id="attach_file_mac_intel" type="button" class="col-sm-2">Upload file</button>
+    </form>
+
+
+    <form class="row mt-1">
+      <div class="col-sm-10 mt-1" >
+        <label for="attach_file_mac_apple" >MacOS-Apple url : </label>
+        <input type="text"  class="col-sm-6 mt-1" id="mac_apple_url_result" style="font-size: smaller;color: blue;">
+        <input type="file" id="file_mac_apple" name="file" required>
+      </div>
+      <button id="attach_file_mac_apple" type="button" class="col-sm-2">Upload file</button>
+    </form>
+  </div>
+
+  <button id="upload-node-version-button" class="btn-info mt-3"> Crate a new node version
+  </button>
+{% end %}
+<script type="text/javascript">
+  var node_url ="{{node_url}}"
+</script>
+
+{% end %}

@@ -95,7 +95,7 @@ class WorkersView(BaseHandler):
                         autorefresh=1 if self.application.options.auto_refresh else 0, permission = self.access_level, database_status = database_status)
 
     async def post(self):
-        print(f"Logout clicked comming soon!")
+        self.application.login_status = False
 
     @classmethod
     def _as_dict(cls, worker):

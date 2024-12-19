@@ -49,9 +49,6 @@ def flower_aioz(ctx, tornado_argv):
 
     atexit.register(flower_app.stop)
     signal.signal(signal.SIGTERM, sigterm_handler)
-
-    print(options.redis_password)
-
     if not ctx.obj.quiet:
         print_banner(app, 'ssl_options' in settings)
 

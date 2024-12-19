@@ -21,13 +21,304 @@
 
     {% block container %}
     {% end %}
+    <style>
+      /* Custom highlight with higher specificity */
+      tr.highlight-row {
+        background-color: #f2dede !important; /* Override striped styles */
+        color: #a94442; /* Optional: Change text color */
+      }
+    </style>    
+
 
     <script src="{{ static_url('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ static_url('js/jquery-3.6.4.min.js') }}"></script>
     <script src="{{ static_url('js/datatables-1.13.4.min.js') }}"></script>
     <script src="{{ static_url('js/moment-2.29.4.min.js') }}"></script>
     <script src="{{ static_url('js/moment-timezone-with-data-2.29.4.min.js') }}"></script>
-	  <script src="{{ static_url('js/flower.js') }}"></script>
+    <script src="{{ static_url('js/axios.min.js') }}"></script>
+    <script type="module" >
+
+      import { S3Client, PutObjectCommand, CreateMultipartUploadCommand, UploadPartCommand,CompleteMultipartUploadCommand } from "https://esm.sh/@aws-sdk/client-s3"
+      import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner"
+
+      const folder = 'node_version/'
+      const bucket = 'w3ai-platform'
+      const chunkSize = 10*1024*1024    // 100MB
+      const largeFileSizeThreshold = 10*1024*1024 // 100MB
+      const expireTime = 3600*168 // less 1 week
+      const apiToken = "any"
+      let nodeUrl = {
+        linuxUploadUrl : "",
+        windowsUploadUrl : "",
+        macIntelUploadUrl : "",
+        macAppleUploadUrl : ""
+      }
+
+      const client = new S3Client({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'FR46RKQH5H6OUSSRC4TYELDGNM',
+          secretAccessKey: 'G75HY7YIAIZT5R5NA3M7GMAO4DKBGWWNMYR7C3JWBI2FWHWYK5CQ'
+        },
+        endpoint: {
+          url: 'https://s3.w3s.aioz.network',
+        },
+        forcePathStyle: true
+      })
+     
+      const uploadSingleFile = async (file )=>{
+        const bucketParams = {
+            Bucket: bucket,
+            Key: folder + file.name,
+            Body: file
+          }
+        const command = new PutObjectCommand(bucketParams)
+        const presigUrl = await getSignedUrl(client,command,{expiresIn: expireTime})
+        try{
+          const uploadResponse = await axios.put(presigUrl, file , {
+            headers: {
+              "Content-Type": 'application/json',
+              },
+            });
+          alert("Upload file successfully")
+          return presigUrl
+        }
+        catch (error){
+          console.log("Error uploading file:", error);
+          alert(`File uploaded failed! ${error}`);
+          return null
+          
+        }
+      }
+
+      const startMultiPartUpload = async(file)=>{
+  
+        try {
+        // start-multipart-upload : createMultipartUpload
+        const createPartParams = {
+            Bucket: bucket,
+            Key: folder + file.name
+          }
+        const command = new CreateMultipartUploadCommand(createPartParams);
+        const createMultiPartCommand = await client.send(command);
+        const uploadId = createMultiPartCommand.UploadId;
+        // Call number of part file
+        let totalSize = file.size
+        let numOfPart = Math.ceil(totalSize/chunkSize)
+
+        const totalParts = Array.from({ length: numOfPart }, (_, i) => i + 1);
+        const presignedUrls = await Promise.all(
+          totalParts.map(async (partNumber) => {
+              const params = {
+                Bucket: bucket,
+                Key: folder +file.name,
+                PartNumber: partNumber,
+                UploadId: uploadId,
+              };
+            const command = new UploadPartCommand(params)
+            const presigUrl = await getSignedUrl(client,command,{expiresIn: expireTime})
+            return presigUrl
+            })
+        );
+
+        let parts = [];
+        const uploadPromises = [];
+        for (let i = 0; i < numOfPart; i++) {
+            let start = i * chunkSize;
+            let end = Math.min(start + chunkSize, totalSize);
+            let chunk = file.slice(start, end);
+            let presignedUrl = presignedUrls[i];
+            const uploadResponse = await axios.put(presignedUrl, chunk , {
+            headers: {"Content-Type": file.type,},
+            });
+            parts.push({
+              etag: uploadResponse.headers.etag,
+              PartNumber: i + 1,
+            })
+          uploadPromises.push(uploadResponse);
+          }
+        const uploadResponses = await Promise.all(uploadPromises);
+        // complete-multipart-upload
+        const completeParams = {
+                Bucket: bucket,
+                Key: folder +file.name,
+                MultipartUpload: { Parts: parts },
+                UploadId: uploadId,
+              }; 
+        const multipartCommand = new CompleteMultipartUploadCommand(completeParams);
+        const completeMultiPartCommand = await client.send(multipartCommand);
+        console.log(completeMultiPartCommand)
+        alert("Upload multifile successfully")
+        return completeMultiPartCommand.Location
+        } catch (error) {
+        console.log(`Error : ${error}`)
+        alert(`Upload multifile failed : ${error}`)
+        return null
+        }
+      }
+      
+
+      // document.getElementById("attach_file_linux").addEventListener("click", async () => {
+      //   const fileInput = document.getElementById("file_linux");
+      //   const url_result_text = document.getElementById("linux_url_result")
+      //   const file = fileInput.files[0];
+      //   if (!file) {
+      //     alert("Please select a file to upload.");
+      //     return;
+      //   }
+      //   url_result_text.innerText = "Uploading ...."
+      //   if (file.size < largeFileSizeThreshold){
+      //     const resultUrl = await uploadSingleFile(file)
+      //     nodeUrl.linuxUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     // url_result_text.setAttribute(resultUrl, "")
+      //   }
+      //   else{
+      //     const resultUrl = await startMultiPartUpload(file)
+      //     nodeUrl.linuxUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     // url_result_text.setAttribute(resultUrl, "")
+      //   } 
+      // }
+      // );
+
+      // document.getElementById("attach_file_win").addEventListener("click", async () => {
+      //   const fileInput = document.getElementById("file_win");
+      //   const url_result_text = document.getElementById("win_url_result")
+      //   const file = fileInput.files[0];
+      //   if (!file) {
+      //     alert("Please select a file to upload.");
+      //     return;
+      //   }
+      //   url_result_text.innerText = "Uploading ...."
+      //   if (file.size < largeFileSizeThreshold){
+      //     const resultUrl = await uploadSingleFile(file)
+      //     nodeUrl.windowsUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     console.log(nodeUrl)
+      //   }
+      //   else{
+      //     const resultUrl = await startMultiPartUpload(file)
+      //     nodeUrl.windowsUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     console.log(nodeUrl)
+      //   } 
+
+      // }
+      // );
+
+      // document.getElementById("attach_file_mac_intel").addEventListener("click", async () => {
+      //   const fileInput = document.getElementById("file_mac_intel");
+      //   const url_result_text = document.getElementById("mac_intel_url_result")
+      //   const file = fileInput.files[0];
+      //   if (!file) {
+      //     alert("Please select a file to upload.");
+      //     return;
+      //   }
+      //   url_result_text.innerText = "Uploading ...."
+      //   if (file.size < largeFileSizeThreshold){
+      //     const resultUrl = await uploadSingleFile(file)
+      //     nodeUrl.macIntelUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     console.log(nodeUrl)
+      //   }
+      //   else{
+      //     const resultUrl = await startMultiPartUpload(file)
+      //     nodeUrl.macIntelUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     console.log(nodeUrl)
+      //   } 
+
+      // }
+      // );
+
+      // document.getElementById("attach_file_mac_apple").addEventListener("click", async () => {
+      //   const fileInput = document.getElementById("file_mac_apple");
+      //   const url_result_text = document.getElementById("mac_apple_url_result")
+      //   const file = fileInput.files[0];
+      //   if (!file) {
+      //     alert("Please select a file to upload.");
+      //     return;
+      //   }
+      //   url_result_text.innerText = "Uploading ...."
+      //   if (file.size < largeFileSizeThreshold){
+      //     const resultUrl = await uploadSingleFile(file)
+      //     nodeUrl.macAppleUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     // url_result_text.setAttribute(resultUrl, "")
+      //     console.log(nodeUrl)
+      //   }
+      //   else{
+      //     const resultUrl = await startMultiPartUpload(file)
+      //     nodeUrl.macAppleUploadUrl = resultUrl
+      //     url_result_text.value = resultUrl
+      //     // url_result_text.setAttribute(resultUrl, "")
+      //     console.log(nodeUrl)
+      //   } 
+
+      // }
+      // );
+
+    //   document.getElementById("upload-node-version-button").addEventListener("click", async ()=>{
+    //     const prodTypeSelection = document.getElementById("upload_product_type");
+    //     const nodeVersionText = document.getElementById("node_version_text");
+    //     const linux_url_result = document.getElementById("linux_url_result").value;
+    //     const win_url_result = document.getElementById("win_url_result").value;
+    //     const mac_intel_url_result = document.getElementById("mac_intel_url_result").value;
+    //     const mac_apple_url_result = document.getElementById("mac_apple_url_result").value;
+    //     var productType = prodTypeSelection.value;
+    //     var releaseType = "pending";
+    //     var nodeVersion = nodeVersionText.value
+    //     console.log(`${productType}   ${releaseType}   ${nodeVersion}   ${nodeUrl}   `)
+
+    //     if(nodeVersion == ""){
+    //       alert("Node version is invalid")
+    //       return
+    //     }
+
+    //     if (linux_url_result == ""){
+    //       alert("Linux url is invalid")
+    //       return
+    //     }
+    //     else if (win_url_result == "" ){
+    //       alert("Windows url is invalid")
+    //       return  
+    //     }
+    //     else if (mac_intel_url_result == ""){
+    //       alert("MacOS-Intel url is invalid")
+    //       return 
+    //     }
+    //     else if (mac_apple_url_result == ""){
+    //       alert("MacOS-Apple url is invalid")
+    //       return 
+    //     }
+
+    //     var endpoint = `http://10.0.0.30:8089/management/node/version/new?release_type=${releaseType}&product_type=${productType}&version=${nodeVersion}
+    //                     &linux_url=${linux_url_result}
+    //                     &windows_url=${win_url_result}
+    //                     &macOs_intel_url=${mac_intel_url_result}
+    //                     &macOs_apple_url=${mac_apple_url_result}`
+    //     try {
+    //       const uploadRes = await axios.post(endpoint, "", {headers:{
+    //           "accept" : "application/json",
+    //           "api-token": apiToken
+    //     }})
+    //       console.log(uploadRes)
+    //       if(uploadRes.status < 300){
+    //         alert(`${uploadRes.data.message}`)
+    //       }
+    //       else{
+    //         alert("Create node version failed")
+    //       }
+
+    //     } catch (error) {
+    //         alert(`Create node version error : ${error}`)
+    //     }
+    //   }
+    // )
+    </script>
+	  <script type="module" src="{{ static_url('js/flower.js') }}" >
+    </script>
 
     {% block extra_scripts %}
     {% end %}

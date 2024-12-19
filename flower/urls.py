@@ -9,6 +9,8 @@ from views.broker import BrokerView
 from views.error import NotFoundErrorHandler
 from views.tasks import TasksDataTable, TasksView, TaskView
 from views.workers import WorkersView, WorkerView
+from views.node_version import NodeVersionView
+from views.register import RegisterView
 
 settings = dict(
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -28,6 +30,8 @@ handlers = [
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/tasks/datatable", TasksDataTable),
     url(r"/broker", BrokerView, name='broker'),
+    url(r"/node-version", NodeVersionView, name='node-version'),
+    url(r"/register", RegisterView, name='register'),
     # Worker API
     (r"/api/workers", workers.ListWorkers),
     (r"/api/worker/shutdown/(.+)", control.WorkerShutDown),

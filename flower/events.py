@@ -167,7 +167,6 @@ class Events(threading.Thread):
     def run(self):
         try_interval = 1
         while True:
-            print("Threading")
             try:
                 try_interval *= 2
 

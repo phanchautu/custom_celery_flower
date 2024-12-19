@@ -74,6 +74,8 @@ custom_flower:
       - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
       - FLOWER_REDIS_HOST=redis
       - FLOWER_REDIS_DATABASE_TABLE=1
+      - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
+      - FLOWER_USER_DATABASE_TABLE= 10
     volumes:
       - flower:/data
     links:
@@ -91,13 +93,14 @@ custom_flower:
 From Docker hub :
 ```
 custom_flower:
-    image: phanchautu/w3ai-custom-flower:1.4
+    image: phanchautu/w3ai-custom-flower:1.6
     container_name: custom-flower-1
 
 ```
 -----
 
 ## Run flower from source
+
 
 Clone repo:
 ```
@@ -115,7 +118,7 @@ python3 flower flower-aioz -A tasks -broker-api="http://guest:guest@localhost:15
 Config permission login with 3 level:
 
 ```
-python3 flower flower-aioz -A tasks --basic-auth=admin:admin_pass --operator-auth=operator:operator_pass --guest-auth=guest:guest_pass
+--basic-auth=admin:admin_pass --operator-auth=operator:operator_pass --guest-auth=guest:guest_pass
 
 
 ```
@@ -123,7 +126,44 @@ python3 flower flower-aioz -A tasks --basic-auth=admin:admin_pass --operator-aut
 Config redis-server connection
 
 ```
-python3 flower flower-aioz -A tasks --redis_host=redis --redis_database=0 --redis_password=w3ai-aioz_ai=2024
+--redis_host=redis --redis_database=0 --redis_password=w3ai-aioz_ai=2024
+
+```
+
+Config redis-server for user database
+
+```
+ --user_database_table=10
+
+```
+
+Config node version api endpoint
+
+```
+ --node_api_endpoint="http://10.0.0.30:8089/"
+```
+
+## Development :
+
+### Add new options:
+Open file ```~/flower/options.py ``` add new option like this :
+```
+define("user_database_table", type=int, default=10, multiple=False, help="user database table")
+
+```
+Get value of option :
+
+```
+self.options.user_database_table
+
+```
+
+### Transfer html variable to JS Script
+
+```
+<script type="text/javascript">
+  var node_url ="{{node_url}}"
+</script>
 
 ```
 
@@ -145,6 +185,8 @@ Or terminate executing task by: ::
     $ curl -X POST -d 'terminate=True' http://localhost:5555/api/task/revoke/8a4da87b-e12b-4547-b89a-e92e4d1f8efd
 
 For more info checkout [API Reference](https://flower.readthedocs.io/en/latest/api.html)
+
+
 
 Documentation
 -------------

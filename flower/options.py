@@ -80,5 +80,13 @@ define("redis_password", type=str, default=None, multiple=False,
        help="redis database authentication")
 define("redis_database_table", type=int, default=0, multiple=False,
        help="redis database table")
+define("node_api_endpoint", type=str, default="http://10.0.0.30:8089/", multiple=False,
+       help="node version api url")
+define("user_database_table", type=int, default=10, multiple=False,
+       help="user database table")
+
+define("node_version_column", type=str,
+       default="No.,State,Time,Version, url",
+       help="Show all node version")
 
 default_options = options

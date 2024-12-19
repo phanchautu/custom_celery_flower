@@ -38,6 +38,7 @@ services:
  
 
   custom_flower:
+    # image: phanchautu/w3ai-custom-flower:1.5
     build:
       context: .
       dockerfile: Dockerfile
@@ -57,6 +58,8 @@ services:
       - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
       - FLOWER_REDIS_HOST=redis
       - FLOWER_REDIS_DATABASE_TABLE=1
+      - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
+      - FLOWER_USER_DATABASE_TABLE= 10
     volumes:
       - flower:/data
     links:

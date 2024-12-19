@@ -10,6 +10,7 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
+      {% if permission == "admin" %}
       <li class="nav-item active">
         <a class="nav-link text-dark" href="{{ reverse_url('workers') }}">Workers</a>
       </li>
@@ -20,12 +21,65 @@
         <a class="nav-link text-dark" href="{{ reverse_url('broker') }}">Broker</a>
       </li>
       <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('node-version') }}">Node Version</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('register') }}">Register</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link text-dark" href="https://flower.readthedocs.io/" target="_blank"
           rel="noopener">Documentation</a>
       </li>
+
+      {% elif permission == "operator" %}
+      <li class="nav-item active">
+        <a class="nav-link text-dark" href="{{ reverse_url('workers') }}">Workers</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('tasks') }}">Tasks</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('broker') }}">Broker</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('node-version') }}">Node Version</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="https://flower.readthedocs.io/" target="_blank"
+          rel="noopener">Documentation</a>
+      </li>
+
+
+
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('tasks') }}">Tasks</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('node-version') }}">Node Version</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="https://flower.readthedocs.io/" target="_blank"
+          rel="noopener">Documentation</a>
+      </li>
+      
+      {% end %}
     </ul>
 
     <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+  
+       <!-- <ul class="navbar-nav mr-auto">
+          <a class="nav-link text-dark">User Name :</a>
+          <input type="text" id="user_name" />
+      </ul>
+
+      <ul class="navbar-nav mr-auto">
+          <a class="nav-link text-dark">Password :</a>
+          <input type="password" id="password" />
+      </ul>
+
+      <button onclick="handleButtonClick()">Login</button> -->
+
       <ul class="navbar-nav mr-auto">
         <li class="nav-item">
           <a class="nav-link text-dark">User : {{permission}}</a>
@@ -60,6 +114,7 @@
                   document.getElementById('result').textContent = data.message;
               })
               .catch(error => console.error('Error:', error));
+              window.location.reload()
           }
       </script>
 

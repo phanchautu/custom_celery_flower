@@ -1,5 +1,41 @@
 /*jslint browser: true */
 /*global $, WebSocket, jQuery */
+// import AWS from '../../../node_modules/@aws-sdk/client-s3';
+// const { PutObjectCommand, S3Client } = import '@aws-sdk/client-s3'
+// import { PutObjectCommand, S3Client } from '../../../node_modules/@aws-sdk/client-s3'
+// import {getSignedUrl} from '@aws-sdk/s3-request-presigner'
+// const { PutObjectCommand, S3Client } = require('@aws-sdk/client-s3');
+// // const { getSignedUrl } = require('@aws-sdk/client-s3');
+// import axios from '../../../node_modules/axios/lib/axios'
+// const axios = require('axios')
+
+
+
+// const { default: axios } = require("axios");
+
+
+// import axios from "axios";
+// const s3Client = new S3Client({
+//   region: 'us-east-1',
+//   credentials: {
+//     accessKeyId: 'FR46RKQH5H6OUSSRC4TYELDGNM',
+//     secretAccessKey: 'G75HY7YIAIZT5R5NA3M7GMAO4DKBGWWNMYR7C3JWBI2FWHWYK5CQ'
+//   },
+//   endpoint: {
+//     url: 'https://s3.w3s.aioz.network',
+//   },
+//   forcePathStyle: true
+// })
+
+// const filePath = '/home/tuphan/Desktop/FlowerV2/flower/w3s_upload.js';
+// const folder = 'node_version/'
+
+// const bucketParams = {
+//   Bucket: 'w3ai-platform',
+//   Key: folder + path.basename(filePath),
+//   Body: fs.createReadStream(filePath)
+// }
+
 
 var flower = (function () {
     "use strict";
@@ -362,6 +398,256 @@ var flower = (function () {
         });
     });
 
+    $('#load_node_button').on('click',async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const productTypeSelected = document.getElementById('product_type')
+        var productType = productTypeSelected.value;
+        const nodeTypeTypeSelected = document.getElementById('node_type')
+        var nodeType = nodeTypeTypeSelected.value;
+        initNodeDatable(productType, nodeType)
+    });
+    
+  
+
+    
+
+    const folder = 'node_version/'
+    const bucket = 'w3ai-platform'
+    const chunkSize = 10*1024*1024    // 100MB
+    const largeFileSizeThreshold = 10*1024*1024 // 10MB
+    const expireTime = 3600*168 // less 1 week
+    const apiToken = "any"
+    const hubEndpoint = "${node_url}"
+
+    $('#attach_file_linux').on('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fileInput = document.getElementById("file_linux");
+        const url_result_text = document.getElementById("linux_url_result")
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please select a file to upload.");
+          return;
+        }
+        url_result_text.value = "Uploading ...."
+        if (file.size < largeFileSizeThreshold){
+            const resultUrl = await uploadSingleFile(file)
+            url_result_text.value = resultUrl
+        }
+        else{
+            const resultUrl = await uploadMultipartFile(file)
+            url_result_text.value = resultUrl
+            if(resultUrl != null){
+                alert("Upload file success")
+            }
+        } 
+    })
+
+    $('#attach_file_win').on('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fileInput = document.getElementById("file_win");
+        const url_result_text = document.getElementById("win_url_result")
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please select a file to upload.");
+          return;
+        }
+        url_result_text.value = "Uploading ...."
+        if (file.size < largeFileSizeThreshold){
+            const resultUrl = await uploadSingleFile(file)
+            url_result_text.value = resultUrl
+        }
+        else{
+            const resultUrl = await uploadMultipartFile(file)
+            url_result_text.value = resultUrl
+            if(resultUrl != null){
+                alert("Upload file success")
+            }
+        } 
+    })
+
+    $('#attach_file_mac_intel').on('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fileInput = document.getElementById("file_mac_intel");
+        const url_result_text = document.getElementById("mac_intel_url_result")
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please select a file to upload.");
+          return;
+        }
+        url_result_text.value = "Uploading ...."
+        if (file.size < largeFileSizeThreshold){
+            const resultUrl = await uploadSingleFile(file)
+            url_result_text.value = resultUrl
+        }
+        else{
+            const resultUrl = await uploadMultipartFile(file)
+            url_result_text.value = resultUrl
+            if(resultUrl != null){
+                alert("Upload file success")
+            }
+        } 
+    })
+
+
+    $('#attach_file_mac_apple').on('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fileInput = document.getElementById("file_mac_apple");
+        const url_result_text = document.getElementById("mac_apple_url_result")
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please select a file to upload.");
+          return;
+        }
+        url_result_text.value = "Uploading ...."
+        if (file.size < largeFileSizeThreshold){
+            const resultUrl = await uploadSingleFile(file)
+            url_result_text.value = resultUrl
+        }
+        else{
+            const resultUrl = await uploadMultipartFile(file)
+            url_result_text.value = resultUrl
+            if(resultUrl != null){
+                alert("Upload file success")
+            }
+        } 
+    })
+
+    $('#upload-node-version-button').on('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const prodTypeSelection = document.getElementById("upload_product_type");
+        const nodeVersionText = document.getElementById("node_version_text");
+        const linux_url_result = document.getElementById("linux_url_result").value;
+        const win_url_result = document.getElementById("win_url_result").value;
+        const mac_intel_url_result = document.getElementById("mac_intel_url_result").value;
+        const mac_apple_url_result = document.getElementById("mac_apple_url_result").value;
+        var productType = prodTypeSelection.innerText;
+        var releaseType = "pending";
+        var nodeVersion = nodeVersionText.value
+
+        if(nodeVersion == ""){
+          alert("Node version is invalid")
+          return
+        }
+
+        if (linux_url_result == ""){
+          alert("Linux url is invalid")
+          return
+        }
+        else if (win_url_result == "" ){
+          alert("Windows url is invalid")
+          return  
+        }
+        else if (mac_intel_url_result == ""){
+          alert("MacOS-Intel url is invalid")
+          return 
+        }
+        else if (mac_apple_url_result == ""){
+          alert("MacOS-Apple url is invalid")
+          return 
+        }
+        var endpoint = `${node_url}management/node/version/new?release_type=${releaseType}&product_type=${productType}&version=${nodeVersion}
+                        &linux_url=${linux_url_result}
+                        &windows_url=${win_url_result}
+                        &macOs_intel_url=${mac_intel_url_result}
+                        &macOs_apple_url=${mac_apple_url_result}`
+        try {
+          const uploadRes = await axios.post(endpoint, "", {headers:{
+              "accept" : "application/json",
+              "api-token": apiToken
+        }})
+          if(uploadRes.status < 300){
+            alert(`${uploadRes.data.message}`)
+          }
+          else{
+            alert("Create node version failed")
+          }
+        // reload
+        const productTypeSelected = document.getElementById('product_type')
+        var productType = productTypeSelected.value;
+        initNodeDatable(productType, 'all')
+
+        } catch (error) {
+            alert(`Create node version error : ${error}`)
+        }
+    })
+
+
+    const uploadSingleFile = async (file )=>{
+        try {
+            const endpoint = `${hubEndpoint}storage/presigned_url/upload/node_version/${file.name}`
+            const headers = {
+                        "accept": "application/json",
+                        "api-token": apiToken,
+                        "Content-Type": "application/json",
+                        } 
+            const res = await axios.get(endpoint, {headers:headers})
+            if (res.status == 200){
+                const uploadUrl = res.data?.data?.upload_info?.upload_url
+                const uploadHeaders = res.data?.data?.upload_info?.headers
+                const uploadFileRes = await axios.put(uploadUrl, file,{headers:uploadHeaders} )
+                if (uploadFileRes.status == 200){
+                    alert("Upload file success")
+                    return res.data?.data?.download_url
+                }
+                else{
+                    alert("Upload file failed")
+                    return null
+                }
+            }
+        } catch (error) {
+            alert(`Upload file failed : ${error}`)
+            return null
+        }
+    }
+
+    const uploadMultipartFile = async(file)=>{
+  
+        try {
+        const endpoint = `${hubEndpoint}storage/multipart/upload_id/node_version/${file.name}`
+        const headers = {
+                    "accept": "application/json",
+                    "api-token": apiToken,
+                    } 
+        const res = await axios.get(endpoint, {headers:headers})
+        if (res.status == 200){
+            const uploadId = res.data.data.upload_id
+            const chunkSize = res.data.data.part_size
+            const fileName = res.data.data.file_name
+            let totalSize = file.size
+            let numOfPart = Math.ceil(totalSize/chunkSize)
+            for (let i = 0; i < numOfPart; i++) {
+                let start = i * chunkSize;
+                let end = Math.min(start + chunkSize, totalSize);
+                let chunk = file.slice(start, end);
+                const getLinkFileUrl = `${hubEndpoint}storage/multipart/upload_url/${folder}${fileName}?upload_id=${uploadId}&part_number=${i+1}`
+                const getLinkFileRes = await axios.get(getLinkFileUrl, {headers:headers})
+                if (getLinkFileRes.status == 200){
+                    const uploadFileUrl = getLinkFileRes.data.data.upload_url
+                    const uploadFileHeaders = getLinkFileRes.data.data.headers
+                    const uploadFileRes = await axios.put(uploadFileUrl, chunk,{headers:uploadFileHeaders} )
+                    if(uploadFileRes.status != 200){
+                    return null
+                    }
+                }
+            }
+            const completeMultipartUploadUrl = `${hubEndpoint}storage/multipart/complete_part/${folder}${fileName}?upload_id=${uploadId}&part_number=${numOfPart}`
+            const completeMultipartUploadRes = await axios.get(completeMultipartUploadUrl, {headers:headers})
+            if(completeMultipartUploadRes.status == 200){
+                return completeMultipartUploadRes.data
+            }
+        }
+        } catch (error) {
+            alert(`Upload multifile failed : ${error}`)
+            return null
+        }
+      }
+
     function sum(a, b) {
         return parseInt(a, 10) + parseInt(b, 10);
     }
@@ -389,6 +675,7 @@ var flower = (function () {
         }
         return true;
     }
+
 
     $.urlParam = function (name) {
         var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
@@ -688,6 +975,341 @@ var flower = (function () {
             }, ],
         });
 
+    });
+
+    $(document).ready(function(){
+        
+        if (!active_page('/node-version')) {
+            return;
+        }
+
+        function initNodeDatable(prod, node){
+        if(node == 'all'){
+            table.destroy();
+            table = new DataTable('#node-version-table',{
+            rowId: 'name',
+            searching: false,
+            select: false,
+            paging: true,
+            lengthMenu: [5, 10, 20, 30],
+            pageLength: 5,
+            serverSide:false,
+            fixedColumns: true,
+            scrollCollapse: true,
+            scrollX:true,
+            scrollY:false,
+            autoWidth: false,
+            
+            ajax: {
+                cache: true,
+                url: `${node_url}management/node/version/all?product_type=${prod}`,
+                type: "GET",
+                headers:{
+                        "accept": "application/json",
+                        "api-token": 'any',
+                        "Content-Type": "application/json",
+                        } ,
+                dataSrc: 'data',
+                },
+            columnDefs: [{
+                targets: 0,
+                data: "version_info.version", render: data =>data || null,
+                defaultContent: null,
+                type: 'natural',
+            }, {
+                targets: 1,
+                data: 'state', render: data =>data || null,
+                defaultContent: null,
+                className: "text-center",
+            }, {
+                targets: 2,
+                data: 'timestamp', 
+                render: function (data, type, row) {
+                        return moment(data).format('MMMM Do, h:mm');
+                    },
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 3,
+                data: 'version_info.url.linux',render: data =>data || null,
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 4,
+                data: 'version_info.url.windows',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 5,
+                data: 'version_info.url.macOs_intel',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 6,
+                data: 'version_info.url.macOs_apple',render: data =>data || null,
+                className: "text-center",
+            }, {
+                data: null,
+                createdCell: function (td, cellData, rowData, row, col) {
+                    if (rowData.state != 'release') {
+                         $(td).html(
+                            '<button>Set release</button>'
+                            );
+                        }
+                    else{
+                        $(td).html(
+                            '<div></div>'
+                            );
+                    }
+                },
+                defaultContent: null,
+                targets: -1,
+            }, 
+            ],
+
+            createdRow: function (row, data, dataIndex) {
+                if (data.state == 'release') {
+                    $(row).attr('style', 'background-color: #f2dede !important;');
+                }
+            },
+            width:'10%',
+        }
+        );
+        }
+        else{
+            table.destroy();
+            table = new DataTable('#node-version-table',{
+            rowId: 'name',
+            searching: false,
+            select: false,
+            paging: true,
+            lengthMenu: [5, 10, 20, 30],
+            pageLength: 5,
+            serverSide:false,
+            fixedColumns: true,
+            scrollCollapse: true,
+            scrollX:true,
+            scrollY:false,
+            autoWidth: false,
+            
+            ajax: {
+                cache: true,
+                url: `${node_url}management/node/version/releasing?product_type=${prod}`,
+                type: "GET",
+                headers:{
+                        "accept": "application/json",
+                        "api-token": 'any',
+                        "Content-Type": "application/json",
+                        } ,
+                dataSrc: 'data',
+                },
+            columnDefs: [{
+                targets: 0,
+                data: "version_info.version", render: data =>data || null,
+                defaultContent: null,
+                type: 'natural',
+            }, {
+                targets: 1,
+                data: 'state', render: data =>data || null,
+                defaultContent: null,
+                className: "text-center",
+            }, {
+                targets: 2,
+                data: 'timestamp', 
+                render: function (data, type, row) {
+                        return moment(data).format('MMMM Do, h:mm');
+                    },
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 3,
+                data: 'version_info.url.linux',render: data =>data || null,
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 4,
+                data: 'version_info.url.windows',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 5,
+                data: 'version_info.url.macOs_intel',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 6,
+                data: 'version_info.url.macOs_apple',render: data =>data || null,
+                className: "text-center",
+            }, {
+                data: null,
+                createdCell: function (td, cellData, rowData, row, col) {
+                    $(td).html(
+                            '<div></div>'
+                            );
+                },
+                defaultContent: null,
+                targets: -1,
+            }, 
+            ],
+
+            createdRow: function (row, data, dataIndex) {
+                if (data.state || data.state == 'release' ) {
+                    $(row).attr('style', 'background-color: #f2dede !important;');
+                }
+            },
+            width:'10%',
+            }
+        );
+        }
+        }   
+
+        $('#product_type').on('change', async function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const upload_product_type = document.getElementById('upload_product_type')
+            if(upload_product_type != null){
+                upload_product_type.innerText = event.target.value
+            }
+            var productType = event.target.value;
+            const nodeTypeTypeSelected = document.getElementById('node_type')
+            var nodeType = nodeTypeTypeSelected.value;
+            initNodeDatable(productType, nodeType)
+
+        })
+
+        $('#node_type').on('change', async function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const productType = document.getElementById('product_type').value
+            var nodeType = event.target.value;
+            initNodeDatable(productType, nodeType)
+        })
+
+
+       
+        var table = new DataTable('#node-version-table',{
+            rowId: 'name',
+            searching: false,
+            select: false,
+            paging: true,
+            lengthMenu: [5, 10, 20, 30],
+            pageLength: 5,
+            serverSide:false,
+            fixedColumns: true,
+            scrollCollapse: true,
+            scrollX:true,
+            scrollY:false,
+            autoWidth: false,
+            
+            ajax: {
+                cache: true,
+                url: `${node_url}management/node/version/all?product_type=training`,
+                type: "GET",
+                headers:{
+                        "accept": "application/json",
+                        "api-token": 'any',
+                        "Content-Type": "application/json",
+                        } ,
+                dataSrc: 'data',
+                },
+            columnDefs: [{
+                targets: 0,
+                data: "version_info.version", render: data =>data || null,
+                defaultContent: null,
+                type: 'natural',
+            }, {
+                targets: 1,
+                data: 'state', render: data =>data || null,
+                defaultContent: null,
+                className: "text-center",
+            }, {
+                targets: 2,
+                data: 'timestamp', 
+                render: function (data, type, row) {
+                        return moment(data).format('MMMM Do, h:mm');
+                    },
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 3,
+                data: 'version_info.url.linux',render: data =>data || null,
+                className: "text-center",
+                defaultContent: 0,
+            }, {
+                targets: 4,
+                data: 'version_info.url.windows',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 5,
+                data: 'version_info.url.macOs_intel',render: data =>data || null,
+                className: "text-center",
+            }, {
+                targets: 6,
+                data: 'version_info.url.macOs_apple',render: data =>data || null,
+                className: "text-center",
+            }, {
+                data: null,
+                createdCell: function (td, cellData, rowData, row, col) {
+                    if (rowData.state != 'release') {
+                         $(td).html(
+                            '<button>Set release</button>'
+                            );
+                        }
+                    else{
+                        $(td).html(
+                            '<div></div>'
+                            );
+                    }
+                },
+                defaultContent: null,
+                targets: -1,
+            }, 
+            ],
+
+            createdRow: function (row, data, dataIndex) {
+                if (data.state == 'release') {
+                    $(row).attr('style', 'background-color: #f2dede !important;');
+                }
+            },
+            width:'10%',
+
+        }
+        );
+
+        table.on('click', 'button', function(e){
+            let node_data = table.row(e.target.closest('tr')).data();
+            const productTypeSelected = document.getElementById('product_type')
+            var productType = productTypeSelected.value;
+            if(confirm(`Do you want to rollback for version ${node_data.version_info.version}`)){
+                $.ajax({
+                    cache: true,
+                    type: 'POST',
+                    url: `${node_url}management/node/version/release/rollback/version=${node_data.version_info.version}?product_type=${productType}`,
+                    headers:{
+                        "accept": "application/json",
+                        "api-token": 'any',
+                        "Content-Type": "application/json",
+                        } ,
+                success: function (data) {
+                    show_alert(`Set release ${node_data.version_info.version} successfully`, "success");
+                    },
+                error: function (data) {
+                    show_alert(data.message || data.responseText || `Rollback version ${data.version_info.version} failed`, "danger");
+                    }
+                })
+            }
+            else
+                return
+        }
+    
+        )
+    })
+
+    $(document).ready(function () {
+        if (!active_page('/') && !active_page('/node-version')) {
+            return;
+        }
+        const productTypeSelected = document.getElementById('product_type')
+        var productType = productTypeSelected.value;
+        const nodeTypeTypeSelected = document.getElementById('node_type')
+        var nodeType = nodeTypeTypeSelected.value;
+        // initNodeDatable(productType, nodeType)
     });
 
 }(jQuery));
