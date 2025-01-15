@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block navbar %}
-{% module Template("navbar.html", active_tab="broker", permission=permission) %}
+{% module Template("navbar.html", active_tab="broker", permission=permission, user_name = user_name) %}
 {% end %}
 
 {% block container %}

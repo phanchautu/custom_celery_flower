@@ -1,161 +1,285 @@
 {% extends "base.html" %}
-
 {% block navbar %}
-{% module Template("navbar.html", active_tab="node-version",permission=permission) %}
+{% module Template("navbar.html", active_tab="node-version",permission=permission,user_name = user_name, users=users) %}
 {% end %}
-
-
 {% block container %}
 <input type="hidden" value="{{ time }}" id='time'>
 <input type="hidden" value="{{ columns }}" id='columns'>
-{% if permission == "guest" or permission=="operator"%}
-  <div>
-    <h3 id="workername">Access denied</h3>
+<div class="container-fluid columns">
+  {% if permission == 'admin' %}
+  <div class="row mt-1">
+    <label class="col-sm-3">Select access level : </label>
+    <select id="access-level" class="w-200 col-sm-3">
+      <option value="operator">Operator</option>
+      <option value="guest">Guest</option>
+    </select>
   </div>
-{% elif permission == "admin"  %}
-
-  <div class="container-fluid columns">
-    <div class="row mt-1" >
-      <label class="col-sm-3" >Select access level : </label>
-      <select id="access-level" class="w-200 col-sm-3">
-        <option value="operator">Operator</option>
-        <option value="guest">Guest</option>
-      </select> 
-    </div>
-
-    <div class="row mt-1">
-      <label class="col-sm-3" >User name : </label>
-      <input type="text" id="user-name" class="col-sm-3"/>
-    </div>
-
-    <div class="row mt-1">
-      <label class="col-sm-3" >Password : </label>
-      <input type="text" id="user-password" class="col-sm-3"/>
-    </div>
-  
+  {% end %}
+  <div class="row mt-1">
+    <label class="col-sm-3">User name : </label>
+    <input type="text" id="user-name" class="col-sm-3" />
   </div>
+  <div class="row mt-1">
+    <label class="col-sm-3">Password : </label>
+    <input type="text" id="user-password" class="col-sm-3" />
+  </div>
+  <div class="row mt-1">
+    <label class="col-sm-3">New password : </label>
+    <input type="text" id="user-new-password" class="col-sm-3" />
+  </div>
+</div>
 
-
-  <button id="register-button" class="btn btn-primary" type="button" onclick="handleRegisterClick()">Register</button>
-  <!-- <button id="delete-button" class="btn btn-danger" type="button" onclick="handleDeleteClick()">Delete</button> -->
-
-  <p style="margin-top: 10%;">User list</p>
-
-  <div class="container-fluid mt-3">
-    <table style="width: 50%;"  id="user-list-table" class="w-200 table table-bordered table-striped row-border table-hover font-size:small">
-      <thead>
-        <tr>
-          <th>User name</th>
-          <th>Access level</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody style="font-size: small;" id="delete-user">
-        {% for user in users %}
-        <tr >
-          <td > {{user['name']}} </td>
-          <td > {{user['level']}} </td>
-          <td >
-              <button style="background-color: red;" onclick="handleDeleteUserClick(this)">Delete</button>
-          </td>
-        </tr>
-        {% end %}
-      </tbody>
-    </table>
-
-
+{% if permission == "admin" %}
+<button id="register-button" class="btn btn-primary" type="button" onclick="handleRegisterClick()">Add user</button>
 {% end %}
-<script>
-    function handleRegisterClick() {  
+<button id="change-button" class="btn btn-primary" type="button" onclick="handleChangePasswordClick()">Change
+  password</button>
+
+{% if permission == "admin" or permission == "operator" %}
+<div class="container-fluid columns mt-5">
+  <div class="row mt-1">
+    <label class="col-sm-3">Setting user name : </label>
+    <input type="text" id="setting-name" class="col-sm-3" />
+  </div>
+  <div class="row mt-1">
+    <label class="col-sm-3">Setting password : </label>
+    <input type="text" id="setting-password" class="col-sm-3" />
+  </div>
+</div>
+<button id="set-button" class="btn btn-primary" type="button" onclick="handleSetPasswordClick()">Set password</button>
+
+<p style="margin-top: 1%; font-size: x-large; font-weight: 500;">User list</p>
+<div class="container-fluid mt-3">
+  <table style="width: 50%;" id="user-list-table"
+    class="w-200 table table-bordered table-striped row-border table-hover font-size:small">
+    <thead>
+      <tr>
+        <th>User name</th>
+        <th>Access level</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody style="font-size: small;" id="delete-user">
+      {% for user in users %}
+      <tr>
+        <td> {{user['name']}} </td>
+        <td> {{user['level']}} </td>
+        <td> {{user['status']}} </td>
+        <td>
+          <button style="background-color: red; color: white;" onclick="handleDeleteUserClick(this)">Delete</button>
+          {% if user['status'] == "enable" %}
+          <button style="background-color: blue; color: white;" onclick="handleDisableUserClick(this)">Disable</button>
+          {% else %}
+          <button style="background-color: green; color: white;" onclick="handleEnableUserClick(this)">Enable</button>
+          {% end %}
+        </td>
+      </tr>
+      {% end %}
+    </tbody>
+  </table>
+  {% end %}
+  <script>
+    function handleRegisterClick() {
       const user_name = document.getElementById("user-name").value;
       const user_password = document.getElementById("user-password").value;
       const access_level = document.getElementById("access-level").value;
-      if (user_name == "" || user_password == ""){
+      if (user_name == "" || user_password == "") {
         alert("User name or Password is invalid")
         return
       }
-      fetch('register', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({action:"create" , name:user_name, pass:user_password, level:access_level })
+      fetch('settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: "create", name: user_name, pass: user_password, level: access_level })
       })
-      .then(response => response.json())
-      .then(data => {
-          if(data.result == "failed"){
+        .then(response => response.json())
+        .then(data => {
+          if (data.result == "failed") {
             alert(`${data.message}`)
             return
           }
-          else{
+          else {
             alert(`${data.message}`)
             location.reload()
           }
-      })
-      .catch(error => console.error('Error:', error));
-  }
-
-  function handleDeleteClick() {
-    const user_name = document.getElementById("user-name").value;
-    if (user_name == ""){
-        alert("User name is invalid")
-        return
-      }
-    fetch('register', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({action:"delete" ,name:user_name })
-      })
-      .then(response => response.json())
-      .then(data => {
-          if(data.result == "failed"){
-            alert(`${data.message}`)
-            return
-          }
-          else{
-            alert(`${data.message}`)
-            location.reload();
-          }
-      })
-      .catch(error => console.error('Error:', error));
-
-  }
-
-  function handleDeleteUserClick(rowButton){
-    const deleteUser = rowButton.parentElement.parentElement.cells[0].textContent.replaceAll(" ","")
-    if (confirm(`Delete ${deleteUser} ?`)){
-      fetch('register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({action:"delete" ,name:deleteUser })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data)
-            if(data.result == "failed"){
-              alert(`${data.message}`)
-              return
-            }
-            else{
-              alert(`${data.message}`)
-              location.reload();
-            }
         })
         .catch(error => console.error('Error:', error));
     }
-    else{
-      return
+
+    function handleChangePasswordClick() {
+      const user_name = document.getElementById("user-name").value;
+      const user_password = document.getElementById("user-password").value;
+      const new_password = document.getElementById("user-new-password").value;
+      if (user_name == "" || user_password == "") {
+        alert("User name or Password is invalid")
+        return
+      }
+      if (user_name == "" || new_password == "") {
+        alert("New password is invalid")
+        return
+      }
+      fetch('settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: "change", name: user_name, pass: user_password, new_password: new_password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.result == "failed") {
+            alert(`${data.message}`)
+            return
+          }
+          else {
+            alert(`${data.message}`)
+            location.reload()
+          }
+        })
+        .catch(error => console.error('Error:', error));
     }
 
+    function handleDeleteClick() {
+      const user_name = document.getElementById("user-name").value;
+      if (user_name == "") {
+        alert("User name is invalid")
+        return
+      }
+      fetch('settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: "delete", name: user_name })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.result == "failed") {
+            alert(`${data.message}`)
+            return
+          }
+          else {
+            alert(`${data.message}`)
+            location.reload();
+          }
+        })
+        .catch(error => console.error('Error:', error));
 
-      
-  }
+    }
 
-</script>
+    function handleDeleteUserClick(rowButton) {
+      const deleteUser = rowButton.parentElement.parentElement.cells[0].textContent.replaceAll(" ", "")
+      if (confirm(`Delete ${deleteUser} ?`)) {
+        fetch('settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: "delete", name: deleteUser })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.result == "failed") {
+              alert(`${data.message}`)
+              return
+            }
+            else {
+              alert(`${data.message}`)
+              location.reload();
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+      else {
+        return
+      }
+    }
 
+    function handleDisableUserClick(rowButton) {
+      const disableUser = rowButton.parentElement.parentElement.cells[0].textContent.replaceAll(" ", "")
+      if (confirm(`Disable ${disableUser} ?`)) {
+        fetch('settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: "disable", name: disableUser })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.result == "failed") {
+              alert(`${data.message}`)
+              return
+            }
+            else {
+              alert(`${data.message}`)
+              location.reload();
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+      else {
+        return
+      }
+    }
 
-{% end %}
+    function handleEnableUserClick(rowButton) {
+      const enableUser = rowButton.parentElement.parentElement.cells[0].textContent.replaceAll(" ", "")
+      if (confirm(`Enable ${enableUser} ?`)) {
+        fetch('settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: "enable", name: enableUser })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.result == "failed") {
+              alert(`${data.message}`)
+              return
+            }
+            else {
+              alert(`${data.message}`)
+              location.reload();
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+      else {
+        return
+      }
+    }
+
+    function handleSetPasswordClick() {
+      const setting_user_name = document.getElementById("setting-name").value;
+      const setting_user_password = document.getElementById("setting-password").value;
+      if (setting_user_name == "" || setting_user_password == "") {
+        alert("User name or Password is invalid")
+        return
+      }
+      fetch('settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: "set_pass", name: setting_user_name, pass: setting_user_password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.result == "failed") {
+            alert(`${data.message}`)
+            return
+          }
+          else {
+            alert(`${data.message}`)
+            location.reload()
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
+  {% end %}

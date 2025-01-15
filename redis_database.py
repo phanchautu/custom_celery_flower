@@ -4,11 +4,14 @@ import json
 
 redis_server = redis.StrictRedis(host='localhost', port=6379, password='w3ai-aioz_ai=2024', db=10)
 # Set user
-# redis_server.set('user1',json.dumps({'level':'admin', 'password':'user1'}))
-# redis_server.set('user2',json.dumps({'level':'operator', 'password':'user2'}))
-# redis_server.set('user3',json.dumps({'level':'guest', 'password':'user3'}))
+redis_server.set('admin1',json.dumps({'level':'admin', 'password':'q', 'status':'enable'}))
+redis_server.set('operator1',json.dumps({'level':'operator', 'password':'q', 'status':'disable'}))
+redis_server.set('guest1',json.dumps({'level':'guest', 'password':'q', 'status':'enable'}))
+redis_server.set('admin2',json.dumps({'level':'admin', 'password':'q', 'status':'enable'}))
+redis_server.set('operator2',json.dumps({'level':'operator', 'password':'q', 'status':'disable'}))
+redis_server.set('guest2',json.dumps({'level':'guest', 'password':'q', 'status':'enable'}))
 
-redis_server.flushall()
+# redis_server.flushall()
 while True :
     recovery_workers = {}
     recovery_worker_keys = redis_server.keys('*')

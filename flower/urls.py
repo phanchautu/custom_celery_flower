@@ -31,7 +31,7 @@ handlers = [
     url(r"/tasks/datatable", TasksDataTable),
     url(r"/broker", BrokerView, name='broker'),
     url(r"/node-version", NodeVersionView, name='node-version'),
-    url(r"/register", RegisterView, name='register'),
+    url(r"/settings", RegisterView, name='settings'),
     # Worker API
     (r"/api/workers", workers.ListWorkers),
     (r"/api/worker/shutdown/(.+)", control.WorkerShutDown),

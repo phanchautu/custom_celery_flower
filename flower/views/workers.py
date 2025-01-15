@@ -23,7 +23,7 @@ class WorkerView(BaseHandler):
             raise web.HTTPError(404, f"Unknown worker '{name}'")
         if 'stats' not in worker:
             raise web.HTTPError(404, f"Unable to get stats for '{name}' worker")
-        self.render("worker.html", worker=dict(worker, name=name),permission = self.access_level)
+        self.render("worker.html", worker=dict(worker, name=name),permission = self.access_level, user_name = self.user_name)
 
 
 class WorkersView(BaseHandler):
@@ -92,7 +92,7 @@ class WorkersView(BaseHandler):
             self.render("workers.html",
                         workers=workers,
                         broker=self.application.capp.connection().as_uri(),
-                        autorefresh=1 if self.application.options.auto_refresh else 0, permission = self.access_level, database_status = database_status)
+                        autorefresh=1 if self.application.options.auto_refresh else 0, permission = self.access_level, user_name = self.user_name, database_status = database_status)
 
     async def post(self):
         self.application.login_status = False
