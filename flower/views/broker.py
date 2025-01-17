@@ -26,4 +26,4 @@ class BrokerView(BaseHandler):
 
         self.render("broker.html",
                     broker_url=app.capp.connection().as_uri(),
-                    queues=queues,permission=self.access_level, user_name = self.user_name)
+                    queues=queues,permission=self.access_level, user_name = self.application.user_name)

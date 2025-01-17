@@ -22,6 +22,7 @@ from options import DEFAULT_CONFIG_FILE, default_options
 from views.auth import validate_auth_option
 
 logger = logging.getLogger(__name__)
+
 ENV_VAR_PREFIX = 'FLOWER_'
 
 def sigterm_handler(signum, _):

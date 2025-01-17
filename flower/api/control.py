@@ -144,19 +144,20 @@ Grow worker's pool
         """
 
         if not self.is_worker(workername):
+            self.application.main_logger.info(f"'{self.application.user_name}': Unknown worker '{workername}'")
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         n = self.get_argument('n', default=1, type=int)
-
         logger.info("Growing '%s' worker's pool by '%s'", workername, n)
         response = self.capp.control.pool_grow(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
+            self.application.main_logger.info(f"{self.application.user_name}: Growing {workername} worker's pool by {n}")
             self.write(dict(message=f"Growing '{workername}' worker's pool by {n}"))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
+            self.application.main_logger.error(f"Failed to grow '{workername}' worker's pool: {reason}")
             self.write(f"Failed to grow '{workername}' worker's pool: {reason}")
 
 
@@ -199,15 +200,15 @@ Shrink worker's pool
 
         n = self.get_argument('n', default=1, type=int)
 
-        logger.info("Shrinking '%s' worker's pool by '%s'", workername, n)
         response = self.capp.control.pool_shrink(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
+            self.application.main_logger.info(f"{self.application.user_name}: Shrinking {workername} worker's pool by {n}")
             self.write(dict(message=f"Shrinking '{workername}' worker's pool by {n}"))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to shrink '{workername}' worker's pool: {reason}")
             self.write(f"Failed to shrink '{workername}' worker's pool: {reason}")
 
 
@@ -252,19 +253,17 @@ Autoscale worker pool
 
         min = self.get_argument('min', type=int)
         max = self.get_argument('max', type=int)
-
-        logger.info("Autoscaling '%s' worker by '%s'",
-                    workername, (min, max))
         response = self.capp.control.broadcast(
             'autoscale', arguments={'min': min, 'max': max},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
+            self.application.main_logger.info(f"{self.application.user_name}: Autoscaling '{workername}' worker (min={min}, max={max})")
             self.write(dict(message=f"Autoscaling '{workername}' worker "
                                     "(min={min}, max={max})"))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to autoscale '{workername}' worker: {reason}")
             self.write(f"Failed to autoscale '{workername}' worker: {reason}")
 
 
@@ -304,20 +303,17 @@ Start consuming from a queue
         """
         if not self.is_worker(workername):
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
-
         queue = self.get_argument('queue')
-
-        logger.info("Adding consumer '%s' to worker '%s'",
-                    queue, workername)
         response = self.capp.control.broadcast(
             'add_consumer', arguments={'queue': queue},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
+            self.application.main_logger.info(f"{self.application.user_name}: Adding consumer {queue} to worker {workername}")
             self.write(dict(message=response[0][workername]['ok']))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to add '{queue}' consumer to '{workername}' worker: {reason}")
             self.write(f"Failed to add '{queue}' consumer to '{workername}' worker: {reason}")
 
 
@@ -359,18 +355,16 @@ Stop consuming from a queue
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         queue = self.get_argument('queue')
-
-        logger.info("Canceling consumer '%s' from worker '%s'",
-                    queue, workername)
+        self.application.main_logger.info(f"{self.application.user_name}: Canceling consumer {queue} from worker {workername}")
         response = self.capp.control.broadcast(
             'cancel_consumer', arguments={'queue': queue},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
             self.write(dict(message=response[0][workername]['ok']))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to cancel {queue} consumer from {workername} worker: {reason}")
             self.write(f"Failed to cancel '{queue}' consumer from '{workername}' worker: {reason}")
 
 
@@ -407,7 +401,7 @@ Revoke a task
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        logger.info("Revoking task '%s'", taskid)
+        self.application.main_logger.info(f"{self.application.user_name}: Revoking task {taskid}")
         terminate = self.get_argument('terminate', default=False, type=bool)
         signal = self.get_argument('signal', default='SIGTERM', type=str)
         self.capp.control.revoke(taskid, terminate=terminate, signal=signal)
@@ -458,8 +452,7 @@ Change soft and hard time limits for a task
         if workername is not None and not self.is_worker(workername):
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
-        logger.info("Setting timeouts for '%s' task (%s, %s)",
-                    taskname, soft, hard)
+        self.application.main_logger.info(f"{self.application.user_name}: Setting timeouts for {taskname} task ({soft}, {hard})")
         destination = [workername] if workername is not None else None
         response = self.capp.control.time_limit(
             taskname, reply=True, hard=hard, soft=soft,
@@ -468,9 +461,9 @@ Change soft and hard time limits for a task
         if response and 'ok' in response[0][workername]:
             self.write(dict(message=response[0][workername]['ok']))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(taskname, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to set timeouts: {reason}")
             self.write(f"Failed to set timeouts: '{reason}'")
 
 
@@ -517,15 +510,14 @@ Change rate limit for a task
         if workername is not None and not self.is_worker(workername):
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
-        logger.info("Setting '%s' rate limit for '%s' task",
-                    ratelimit, taskname)
+        self.application.main_logger.info(f"{self.application.user_name}: Setting {ratelimit} rate limit for {taskname} task")
         destination = [workername] if workername is not None else None
         response = self.capp.control.rate_limit(
             taskname, ratelimit, reply=True, destination=destination)
         if response and 'ok' in response[0][workername]:
             self.write(dict(message=response[0][workername]['ok']))
         else:
-            logger.error(response)
             self.set_status(403)
             reason = self.error_reason(taskname, response)
+            self.application.main_logger.info(f"{self.application.user_name}: Failed to set rate limit: {reason}")
             self.write(f"Failed to set rate limit: '{reason}'")

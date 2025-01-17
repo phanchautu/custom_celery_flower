@@ -120,9 +120,7 @@ Execute a task by name and wait results
 :statuscode 404: unknown task
         """
         args, kwargs, options = self.get_task_args()
-        logger.debug("Invoking a task '%s' with '%s' and '%s'",
-                     taskname, args, kwargs)
-
+        self.application.main_logger.info(f"{self.application.user_name}: Invoking a task {taskname} with {args} and {kwargs}")
         try:
             task = self.capp.tasks[taskname]
         except KeyError as exc:
@@ -138,6 +136,7 @@ Execute a task by name and wait results
 
         response = await IOLoop.current().run_in_executor(
             None, self.wait_results, result, response)
+        self.application.main_logger.info(f"{self.application.user_name}: Invoking a task result {response}")
         self.write(response)
 
     def wait_results(self, result, response):
@@ -195,9 +194,7 @@ Execute a task
 :statuscode 404: unknown task
         """
         args, kwargs, options = self.get_task_args()
-        logger.debug("Invoking a task '%s' with '%s' and '%s'",
-                     taskname, args, kwargs)
-
+        self.application.main_logger.info(f"{self.application.user_name}: Invoking a task {taskname} with {args} and {kwargs}")
         try:
             task = self.capp.tasks[taskname]
         except KeyError as exc:
@@ -212,6 +209,7 @@ Execute a task
         response = {'task-id': result.task_id}
         if self.backend_configured(result):
             response.update(state=result.state)
+        self.application.main_logger.info(f"{self.application.user_name}: Async a task result {response}")
         self.write(response)
 
 
@@ -257,13 +255,13 @@ Execute a task by name (doesn't require task sources)
 :statuscode 404: unknown task
         """
         args, kwargs, options = self.get_task_args()
-        logger.debug("Invoking task '%s' with '%s' and '%s'",
-                     taskname, args, kwargs)
+        self.application.main_logger.info(f"{self.application.user_name}: Invoking a task {taskname} with {args} and {kwargs}")
         result = self.capp.send_task(
             taskname, args=args, kwargs=kwargs, **options)
         response = {'task-id': result.task_id}
         if self.backend_configured(result):
             response.update(state=result.state)
+        self.application.main_logger.info(f"{self.application.user_name}: Send a task result {response}")
         self.write(response)
 
 
@@ -346,8 +344,7 @@ Abort a running task
 :statuscode 401: unauthorized request
 :statuscode 503: result backend is not configured
         """
-        logger.info("Aborting task '%s'", taskid)
-
+        self.application.main_logger.info(f"{self.application.user_name}: Aborting task {taskid}")
         result = AbortableAsyncResult(taskid)
         if not self.backend_configured(result):
             raise HTTPError(503)
@@ -401,6 +398,7 @@ Return length of all active queues
                         broker_use_ssl=self.capp.conf.broker_use_ssl)
 
         queues = await broker.queues(self.get_active_queue_names())
+        self.application.main_logger.info(f"{self.application.user_name}: Getting active_queues {queues}")
         self.write({'active_queues': queues})
 
 

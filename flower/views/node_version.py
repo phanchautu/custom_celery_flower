@@ -19,5 +19,5 @@ class NodeVersionView(BaseHandler):
             nodes=[],
             node_url = self.application.options.node_api_endpoint,
             columns=app.options.node_version_column,
-            time=time, permission = self.access_level, user_name = self.user_name
+            time=time, permission = self.access_level, user_name = self.application.user_name
         )

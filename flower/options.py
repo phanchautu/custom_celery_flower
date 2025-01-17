@@ -84,6 +84,8 @@ define("node_api_endpoint", type=str, default="http://10.0.0.30:8089/", multiple
        help="node version api url")
 define("user_database_table", type=int, default=10, multiple=False,
        help="user database table")
+define("logging_path", type=str, default='flower2.log', multiple=False,
+       help="Logging file path")
 
 define("node_version_column", type=str,
        default="No.,State,Time,Version, url",

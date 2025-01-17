@@ -107,5 +107,5 @@ class TasksView(BaseHandler):
             "tasks.html",
             tasks=[],
             columns=app.options.tasks_columns,
-            time=time, permission = self.access_level, user_name = self.user_name
+            time=time, permission = self.access_level, user_name = self.application.user_name
         )

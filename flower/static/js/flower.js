@@ -1071,13 +1071,6 @@ var flower = (function () {
             var releaseType = "pending";
             var nodeVersion = nodeVersionText.value
 
-            console.log(encodeURI(linux_url_result))
-            console.log(encodeURI(win_url_result))
-            console.log(encodeURI(mac_intel_url_result))
-            console.log(encodeURI(mac_apple_url_result))
-
-
-
             if (nodeVersion == "") {
                 alert("Node version is invalid")
                 return
@@ -1208,7 +1201,6 @@ var flower = (function () {
                 }
             },
             width: '10%',
-
         }
         );
 
@@ -1230,7 +1222,6 @@ var flower = (function () {
                     success: function (data) {
                         initNodeDatable(productType, nodeTypeSelected)
                         show_alert(`Set release ${node_data.version_info.version} successfully`, "success");
-
                     },
                     error: function (data) {
                         show_alert(data.message || data.responseText || `Rollback version ${data.version_info.version} failed`, "danger");
@@ -1241,15 +1232,5 @@ var flower = (function () {
                 return
         })
     })
-
-    $(document).ready(function () {
-        if (!active_page('/') && !active_page('/node-version')) {
-            return;
-        }
-        const productTypeSelected = document.getElementById('product_type')
-        var productType = productTypeSelected.value;
-        const nodeTypeTypeSelected = document.getElementById('node_type')
-        var nodeType = nodeTypeTypeSelected.value;
-    });
 
 }(jQuery));

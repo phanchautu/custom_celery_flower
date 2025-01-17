@@ -3,6 +3,7 @@ import inspect
 import traceback
 import copy
 import logging
+from logging.handlers import RotatingFileHandler
 import hmac
 import json
 from base64 import b64decode
@@ -69,27 +70,28 @@ class BaseHandler(tornado.web.RequestHandler):
             operator_auth = self.application.options.operator_auth.copy()
             guest_auth = self.application.options.guest_auth.copy()
             user_list_keys = self.application.user_redis_server.keys('*')
+
             for user in user_list_keys:
                 user_data = self.application.user_redis_server.get(user)
                 user_data_json = json.loads(user_data.decode('utf-8'))
-                if user_data_json["level"] == "admin":
-                    user_name = user.decode("utf-8")
-                    password = user_data_json["password"]
+                if user_data_json['level'] == 'admin' and user_data_json['status'] == 'enable':
+                    user_name = user.decode('utf-8')
+                    password = user_data_json['password']
                     basic_auth.append(f'{user_name}:{password}')
-                elif user_data_json["level"] == "operator":
-                    user_name = user.decode("utf-8")
-                    password = user_data_json["password"]
+                elif user_data_json['level'] == 'operator' and user_data_json['status'] == 'enable':
+                    user_name = user.decode('utf-8')
+                    password = user_data_json['password']
                     operator_auth.append(f'{user_name}:{password}')
-                elif user_data_json["level"] == "guest":
-                    user_name = user.decode("utf-8")
-                    password = user_data_json["password"]
+                elif user_data_json['level'] == 'guest'and user_data_json['status'] == 'enable':
+                    user_name = user.decode('utf-8')
+                    password = user_data_json['password']
                     guest_auth.append(f'{user_name}:{password}')
 
         if self.application.login_status == False:
             self.application.login_status = True
 
         if basic_auth or operator_auth or guest_auth :
-            auth_header = self.request.headers.get("Authorization", "")
+            auth_header = self.request.headers.get('Authorization', '')
             try:
                 basic, credentials = auth_header.split()
                 credentials = b64decode(credentials.encode()).decode()
@@ -102,7 +104,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 for stored_credential in basic_auth:
                     if hmac.compare_digest(stored_credential, credentials):
                         self.access_level = 'admin'
-                        self.user_name = credentials.split(":")[0]
+                        self.application.user_name = credentials.split(':')[0]
                         admin_login_success = True
                         break
                 else:
@@ -111,7 +113,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 for stored_credential in operator_auth:
                     if hmac.compare_digest(stored_credential, credentials):
                         self.access_level = 'operator'
-                        self.user_name = credentials.split(":")[0]
+                        self.application.user_name = credentials.split(':')[0]
                         operator_login_success = True
                         break
                 else:
@@ -120,7 +122,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 for stored_credential in guest_auth:
                     if hmac.compare_digest(stored_credential, credentials):
                         self.access_level = 'guest'
-                        self.user_name = credentials.split(":")[0]
+                        self.application.user_name = credentials.split(':')[0]
                         guest_login_success = True
                         break
                 else:
