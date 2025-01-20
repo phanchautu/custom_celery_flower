@@ -4,17 +4,16 @@ from functools import total_ordering
 from tornado import web
 from utils.tasks import as_dict, get_task_by_id, iter_tasks
 from views import BaseHandler
-logger = logging.getLogger(__name__)
 
 class TaskView(BaseHandler):
     @web.authenticated
     def get(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
-
+        self.application.main_logger.info(f"{self.application.user_name} : Get task {task_id}")
         if task is None:
             raise web.HTTPError(404, f"Unknown task '{task_id}'")
         task = self.format_task(task)
-        self.render("task.html", task=task, permission = self.access_level, user_name = self.user_name)
+        self.render("task.html", task=task, permission = self.access_level, user_name = self.application.user_name)
 
 @total_ordering
 class Comparable:
@@ -89,7 +88,7 @@ class TasksDataTable(BaseHandler):
             try:
                 args = custom_format_task(copy.copy(args))
             except Exception:
-                logger.exception("Failed to format '%s' task", uuid)
+                self.application.main_logger.exception(f"Failed to format {uuid} task")
         return uuid, args
 
 

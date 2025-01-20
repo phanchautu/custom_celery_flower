@@ -3,7 +3,7 @@ services:
   redis:
     image: redis:alpine
     hostname: redis
-    command: ["redis-server", "--requirepass", "w3ai-aioz_ai=2024"]
+    command: [ "redis-server", "--requirepass", "w3ai-aioz_ai=2024" ]
     ports:
       - 6379:6379
     volumes:
@@ -13,7 +13,7 @@ services:
     networks:
       - flower-networks
     healthcheck:
-      test: [ "CMD", "redis-cli","-a", "w3ai-aioz_ai=2024", "--raw", "incr", "ping" ]
+      test: [ "CMD", "redis-cli", "-a", "w3ai-aioz_ai=2024", "--raw", "incr", "ping" ]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -35,15 +35,13 @@ services:
       interval: 5s
       timeout: 20s
       retries: 5
- 
-
   # custom_flower:
-  #   # image: phanchautu/w3ai-custom-flower:1.5
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: custom-flower-1
-    
+  #   image: phanchautu/w3ai-custom-flower:2.0
+  #   # build:
+  #   #   context: .
+  #   #   dockerfile: Dockerfile
+  #   # container_name: custom-flower-1
+
   #   ports:
   #     - 5555:5555
   #   environment:
@@ -53,13 +51,14 @@ services:
   #     - FLOWER_OPERATOR_AUTH=operator:operator
   #     - FLOWER_GUEST_AUTH=guest:guest
   #     - FLOWER_PERSISTENT=True
-  #     - FLOWER_DB=/data/flower_db
+  #     - FLOWER_DB=/data/flower_db_2
   #     - FLOWER_ENABLE_EVENT=True
   #     - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
   #     - FLOWER_REDIS_HOST=redis
   #     - FLOWER_REDIS_DATABASE_TABLE=1
   #     - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
   #     - FLOWER_USER_DATABASE_TABLE= 10
+  #     - FLOWER_LOGGING_PATH=/data/user_log.log
   #   volumes:
   #     - flower:/data
   #   links:
@@ -67,9 +66,9 @@ services:
   #     - rabbitmq
   #   depends_on:
   #     rabbitmq:
-  #       condition: service_healthy 
+  #       condition: service_healthy
   #     redis:
-  #       condition: service_healthy      
+  #       condition: service_healthy
   #   networks:
   #     - flower-networks
 

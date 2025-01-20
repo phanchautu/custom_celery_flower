@@ -56,8 +56,7 @@
                 <td>{{ getattr(task, 'result', '') }}</td>
               </tr>
               {% for name in task._fields %}
-              {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and getattr(task, name, None) is
-              not None %}
+              {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and getattr(task, name, None) is not None %}
               <tr>
                 <td>{{ humanize(name) }}</td>
                 <td>

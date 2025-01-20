@@ -1,8 +1,6 @@
-import logging
 from tornado import web
 from utils.broker import Broker
 from views import BaseHandler
-logger = logging.getLogger(__name__)
 
 class BrokerView(BaseHandler):
     @web.authenticated
@@ -22,7 +20,7 @@ class BrokerView(BaseHandler):
         try:
             queues = await broker.queues(self.get_active_queue_names())
         except Exception as e:
-            logger.error("Unable to get queues: '%s'", e)
+            self.application.main_logger.error("Unable to get queues: '%s'", e)
 
         self.render("broker.html",
                     broker_url=app.capp.connection().as_uri(),

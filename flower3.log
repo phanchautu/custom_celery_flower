@@ -1,19 +1,26 @@
-2025-01-17 07:12:54,419     User               INFO     admin : Update worker info
-2025-01-17 07:12:55,805     User               INFO     admin : Update worker info
-2025-01-17 07:22:58,583     User               INFO     admin: Create new user
-2025-01-17 07:22:58,584     User               INFO     admin: Add user 5 successfully
-2025-01-17 07:26:25,826     User               INFO     admin : Update worker info
-2025-01-17 07:26:26,372     User               INFO     admin : Update worker info
-2025-01-17 07:26:36,147     User               INFO     admin : Update worker info
-2025-01-17 07:26:36,517     User               INFO     admin : Update worker info
-2025-01-17 07:26:41,526     User               INFO     admin : Update worker info
-2025-01-17 07:26:43,065     User               INFO     admin : Update worker info
-2025-01-17 07:26:43,183     User               INFO     admin : Update worker info
-2025-01-17 07:26:49,862     User               INFO     admin: Growing worker1@aioz worker's pool by 1
-2025-01-17 07:30:31,620     User               INFO     admin: Failed to autoscale 'worker1@aioz' worker: ValueError('Autoscale not enabled',)
-2025-01-17 07:36:15,899     User               INFO     admin : Update worker info
-2025-01-17 07:36:34,106     User               INFO     admin : Update worker info
-2025-01-17 07:36:34,686     User               INFO     admin : Update worker info
-2025-01-17 07:51:26,790     User               INFO     admin: set password of user 4 successfully
-2025-01-17 07:51:49,250     User               INFO     admin: Disable user operator2 successfully
-2025-01-17 07:51:58,046     User               INFO     admin: Delete user 4 successfully
+2025-01-20 05:57:11,450     app                INFO     Aioz flower V1.2 Visit me at http://0.0.0.0:5555
+2025-01-20 05:57:11,454     app                INFO     Broker: amqp://guest:**@localhost:5672//
+2025-01-20 05:57:11,476     app                INFO     Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-01-20 06:01:52,677     app                INFO     Aioz flower V1.2 Visit me at http://0.0.0.0:5555
+2025-01-20 06:01:52,681     app                INFO     Broker: amqp://guest:**@localhost:5672//
+2025-01-20 06:01:52,703     app                INFO     Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-01-20 06:01:55,968     User               INFO     admin : Update worker info
+2025-01-20 06:01:56,297     User               INFO     admin : Update worker info

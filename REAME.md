@@ -1,7 +1,6 @@
-# Flower
-
-Flower is an open-source web application for monitoring and managing Celery clusters.
-It provides real-time information about the status of Celery workers and tasks.
+# AIOZ Flower
+AIOZ Flower is a custom version from [flower github repository](https://github.com/mher/flower.git) that is an open-source web application for monitoring and managing Celery clusters.
+It provides real-time information about the status of Celery workers, tasks, broker ,node version and user management.
 
 ## Features
 --------
@@ -24,6 +23,11 @@ It provides real-time information about the status of Celery workers and tasks.
 - HTTP Basic Auth, Google, Github, Gitlab and Okta OAuth
 - Prometheus integration
 - API
+- User management
+- AIOZ node version managment :
+    - View node version list
+    - Change node version status
+    - Upload source code to W3S, create new version
 
 ## Installation with docker image
 ------------
@@ -143,6 +147,14 @@ Config node version api endpoint
  --node_api_endpoint="http://10.0.0.30:8089/"
 ```
 
+Config logging file path:
+
+```
+ -- logging-path=flower.log
+```
+
+
+
 ## Development :
 
 ### Add new options:
@@ -151,12 +163,80 @@ Open file ```~/flower/options.py ``` add new option like this :
 define("user_database_table", type=int, default=10, multiple=False, help="user database table")
 
 ```
-Get value of option :
+Get value of options :
 
 ```
 self.options.user_database_table
 
 ```
+Get/Set options value from flower application : Open file ```~/flower/app.py ```
+
+Set new options to app
+```
+self.new_option = self.options.new_option
+```
+Get new options from app
+
+```
+option = self.application.new_option
+```
+
+### Add item on menu bar
+
+Open file ```~/flower/templates/navbar.html```
+
+```
+  <li class="nav-item">
+        <a class="nav-link text-dark" href="{{ reverse_url('new_menu') }}">New menu</a>
+  </li>
+```
+Create new url for menu:
+
+```
+handlers = [
+    # App
+    url(r"/", WorkersView, name='main'),
+    url(r"/workers", WorkersView, name='workers'),
+    url(r"/worker/(.+)", WorkerView, name='worker'),
+    url(r"/task/(.+)", TaskView, name='task'),
+    url(r"/tasks", TasksView, name='tasks'),
+    url(r"/tasks/datatable", TasksDataTable),
+    url(r"/broker", BrokerView, name='broker'),
+    url(r"/node-version", NodeVersionView, name='node-version'),
+    url(r"/settings", RegisterView, name='settings'),
+    url(r"/new_menu", NewMenuView, name='new_menu')
+]
+```
+
+Create backend python script: Creat a new python script in folder ```~flower/views/new_menu_file.py```
+```
+from tornado import web
+from utils.broker import Broker
+from views import BaseHandler
+
+class NewMenuView(BaseHandler):
+    @web.authenticated
+    async def get(self):
+        self.render("new_menu.html",queues=queues,permission=self.access_level, user_name = self.application.user_name)
+
+```
+
+Create new html file at ```~/flower/templetes/
+
+```
+{% extends "base.html" %}
+
+{% block navbar %}
+{% module Template("navbar.html", permission=permission, user_name = user_name) %}
+{% end %}
+
+{% block container %}
+<div class="container-fluid">
+  
+</div>
+{% end %}
+```
+Html script with node js at file ```~/flower/static/js/flower.js```
 
 ### Transfer html variable to JS Script
 

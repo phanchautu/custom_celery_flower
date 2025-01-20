@@ -1,10 +1,7 @@
-import copy
-import logging
 from functools import total_ordering
 from tornado import web
 from utils.tasks import as_dict, get_task_by_id, iter_tasks
 from views import BaseHandler
-logger = logging.getLogger(__name__)
 
 class NodeVersionView(BaseHandler):
     @web.authenticated

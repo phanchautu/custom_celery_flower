@@ -20,8 +20,8 @@ from urls import settings
 from utils import abs_path, prepend_url, strtobool
 from options import DEFAULT_CONFIG_FILE, default_options
 from views.auth import validate_auth_option
-
-logger = logging.getLogger(__name__)
+from logging.handlers import RotatingFileHandler
+from app import logger
 
 ENV_VAR_PREFIX = 'FLOWER_'
 

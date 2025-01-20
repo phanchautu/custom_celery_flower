@@ -319,7 +319,6 @@ class OktaLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             )
 
     async def _on_auth(self, access_token_response):
-        logger.info("_on_auth")
         if not access_token_response:
             raise tornado.web.HTTPError(500, 'OAuth authentication failed')
         access_token = access_token_response['access_token']

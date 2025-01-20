@@ -1,15 +1,9 @@
-import logging
 import time
 import json as _json
-import redis
-
 from tornado import web
-
 from options import options
 from views import BaseHandler
 from utils.tasks import as_dict, get_task_by_id, iter_tasks
-logger = logging.getLogger(__name__)
-
 
 class WorkerView(BaseHandler):
     @web.authenticated
@@ -17,7 +11,7 @@ class WorkerView(BaseHandler):
         try:
             self.application.update_workers(workername=name)
         except Exception as e:
-            logger.error(e)
+            self.application.main_logger.error(f"{self.application.user_name} : {e}")
         worker = self.application.workers.get(name)
         if worker is None:
             raise web.HTTPError(404, f"Unknown worker '{name}'")
@@ -35,11 +29,12 @@ class WorkersView(BaseHandler):
         json = self.get_argument('json', default=False, type=bool)
         events = self.application.events.state
         self.application.main_logger.info(f"{self.application.user_name} : Update worker info")
+
         if refresh:
             try:
                 self.application.update_workers()
             except Exception as e:
-                logger.exception('Failed to update workers: %s', e)
+                self.application.main_logger.exception('Failed to update workers: %s', e)
         workers = {}
         for name, values in events.counter.items():
             if name not in events.workers:

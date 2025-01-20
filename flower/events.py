@@ -108,8 +108,6 @@ class EventsState(State):
 
 class Events(threading.Thread):
     events_enable_interval = 15000
-
-    # pylint: disable=too-many-arguments
     def __init__(self, capp, io_loop, db=None, persistent=False,
                  enable_events=True, state_save_interval=10,
                  **kwargs):
@@ -197,10 +195,7 @@ class Events(threading.Thread):
         state.close()
 
     def on_enable_events(self):
-        # Periodically enable events for workers
-        # launched after flower
         self.io_loop.run_in_executor(None, self.capp.control.enable_events)
 
     def on_event(self, event):
-        # Call EventsState.event in ioloop thread to avoid synchronization
         self.io_loop.add_callback(partial(self.state.event, event))

@@ -6,7 +6,6 @@ from redis.commands.json.path import Path
 from tornado import web
 from utils.tasks import as_dict, get_task_by_id, iter_tasks
 from views import BaseHandler
-logger = logging.getLogger(__name__)
 
 class RegisterView(BaseHandler):
     access_user_json_list = []
@@ -80,7 +79,6 @@ class RegisterView(BaseHandler):
                 user_info = json.loads(self.application.user_redis_server.get(user).decode('utf-8'))
                 if user.decode('utf-8') == request_data["name"] and user_info["password"] == request_data["pass"]:
                     user_info['password'] = request_data["new_password"]
-                    logger.info(user_info)
                     self.application.user_redis_server.set(user,json.dumps(user_info))
                     change_status = True
                     self.application.main_logger.info(f"{self.application.user_name}: Change password user {request_data['name']} successfully")

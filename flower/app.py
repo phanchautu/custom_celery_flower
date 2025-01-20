@@ -62,7 +62,9 @@ class Flower(tornado.web.Application):
         self.redis_server = redis.StrictRedis(host=str(self.options.redis_host), port=6379, password= str(self.options.redis_password), db=int(self.options.redis_database_table))
         self.user_redis_server = redis.StrictRedis(host=str(self.options.redis_host), port=6379, password= str(self.options.redis_password), db=int(self.options.user_database_table))
         self.user_name = ""
-        logging.basicConfig(filename= self.options.logging_path, format="%(asctime)-27s %(name)-8s %(levelname)-3s %(message)s")
+        self.logging_path = self.options.logging_path
+
+        logging.basicConfig(filename= self.logging_path, format="%(asctime)-27s %(name)-8s %(levelname)-3s %(message)s")
         formatter = logging.Formatter("%(asctime)-27s %(name)-18s %(levelname)-8s %(message)s")
         self.main_logger = logging.getLogger("User")
         handler = RotatingFileHandler(
@@ -74,6 +76,7 @@ class Flower(tornado.web.Application):
             )
         handler.setFormatter(formatter)
         self.main_logger.addHandler(handler)
+        logger.addHandler(handler)
 
     def start(self):
         self.events.start()
