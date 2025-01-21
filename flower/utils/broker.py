@@ -13,10 +13,6 @@ try:
 except ImportError:
     redis = None
 
-
-logger = logging.getLogger(__name__)
-
-
 class BrokerBase:
     def __init__(self, broker_url, *_, **__):
         purl = urlparse(broker_url)
@@ -51,7 +47,7 @@ class RabbitMQ(BrokerBase):
         try:
             self.validate_http_api(http_api)
         except ValueError:
-            logger.error("Invalid broker api url: %s", http_api)
+            self.application.main_logger.error("Invalid broker api url: %s", http_api)
 
         self.http_api = http_api
 
@@ -68,7 +64,7 @@ class RabbitMQ(BrokerBase):
                 connect_timeout=5.0, request_timeout=10.0,
                 validate_cert=False)
         except (socket.error, httpclient.HTTPError) as e:
-            logger.error("RabbitMQ management API call failed: %s", e)
+            self.application.main_logger.error("RabbitMQ management API call failed: %s", e)
             return []
         finally:
             http_client.close()

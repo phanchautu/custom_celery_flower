@@ -35,42 +35,42 @@ services:
       interval: 5s
       timeout: 20s
       retries: 5
-  # custom_flower:
-  #   image: phanchautu/w3ai-custom-flower:2.0
-  #   # build:
-  #   #   context: .
-  #   #   dockerfile: Dockerfile
-  #   # container_name: custom-flower-1
+  custom_flower:
+    # image: phanchautu/w3ai-custom-flower:2.0
+    build:
+      context: .
+      dockerfile: Dockerfileflower
+    container_name: custom-flower-1
 
-  #   ports:
-  #     - 5555:5555
-  #   environment:
-  #     - BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-  #     - FLOWER_BROKER_API=http://guest:guest@rabbitmq:15672/api/
-  #     - FLOWER_BASIC_AUTH=admin:admin
-  #     - FLOWER_OPERATOR_AUTH=operator:operator
-  #     - FLOWER_GUEST_AUTH=guest:guest
-  #     - FLOWER_PERSISTENT=True
-  #     - FLOWER_DB=/data/flower_db_2
-  #     - FLOWER_ENABLE_EVENT=True
-  #     - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
-  #     - FLOWER_REDIS_HOST=redis
-  #     - FLOWER_REDIS_DATABASE_TABLE=1
-  #     - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
-  #     - FLOWER_USER_DATABASE_TABLE= 10
-  #     - FLOWER_LOGGING_PATH=/data/user_log.log
-  #   volumes:
-  #     - flower:/data
-  #   links:
-  #     - redis
-  #     - rabbitmq
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - flower-networks
+    ports:
+      - 5555:5555
+    environment:
+      - BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - FLOWER_BROKER_API=http://guest:guest@rabbitmq:15672/api/
+      - FLOWER_BASIC_AUTH=admin:admin
+      - FLOWER_OPERATOR_AUTH=operator:operator
+      - FLOWER_GUEST_AUTH=guest:guest
+      - FLOWER_PERSISTENT=True
+      - FLOWER_DB=/data/flower_db_2
+      - FLOWER_ENABLE_EVENT=True
+      - FLOWER_REDIS_PASSWORD=w3ai-aioz_ai=2024
+      - FLOWER_REDIS_HOST=redis
+      - FLOWER_REDIS_DATABASE_TABLE=1
+      - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
+      - FLOWER_USER_DATABASE_TABLE= 10
+      - FLOWER_LOGGING_PATH=/data/user_log.log
+    volumes:
+      - flower:/data
+    links:
+      - redis
+      - rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - flower-networks
 
 volumes:
   flower:

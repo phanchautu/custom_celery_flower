@@ -2,8 +2,7 @@ import collections
 import logging
 import time
 from functools import partial
-from flower.app import logger
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Inspector:

@@ -28,7 +28,6 @@ class WorkersView(BaseHandler):
         refresh = self.get_argument('refresh', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
         events = self.application.events.state
-        self.application.main_logger.info(f"{self.application.user_name} : Update worker info")
 
         if refresh:
             try:
@@ -91,6 +90,7 @@ class WorkersView(BaseHandler):
                         autorefresh=1 if self.application.options.auto_refresh else 0, permission = self.access_level, user_name = self.application.user_name, database_status = database_status)
 
     async def post(self):
+        self.application.main_logger.info("Request logout")
         self.application.login_status = False
 
     @classmethod

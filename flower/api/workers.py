@@ -159,7 +159,7 @@ List workers
                 await asyncio.wait(self.application.update_workers(workername=workername))
             except Exception as e:
                 msg = f"Failed to update workers: {e}"
-                logger.error(msg)
+                self.application.main_logger.error(msg)
                 raise web.HTTPError(503, msg)
 
         if status:

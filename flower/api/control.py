@@ -1,11 +1,5 @@
-import logging
-
 from tornado import web
-
 from . import BaseApiHandler
-
-logger = logging.getLogger(__name__)
-
 
 class ControlHandler(BaseApiHandler):
     def is_worker(self, workername):
@@ -18,7 +12,7 @@ class ControlHandler(BaseApiHandler):
                 return res[workername].get('error', 'Unknown reason')
             except KeyError:
                 pass
-        logger.error("Failed to extract error reason from '%s'", response)
+        self.application.main_logger.error("Failed to extract error reason from '%s'", response)
         return 'Unknown reason'
 
 
@@ -56,7 +50,7 @@ Shut down a worker
         if not self.is_worker(workername):
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
-        logger.info("Shutting down '%s' worker", workername)
+        self.application.main_logger.info("Shutting down '%s' worker", workername)
         self.capp.control.broadcast('shutdown', destination=[workername])
         self.write(dict(message="Shutting down!"))
 
@@ -96,14 +90,14 @@ Restart worker's pool
         if not self.is_worker(workername):
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
-        logger.info("Restarting '%s' worker's pool", workername)
+        self.application.main_logger.info("Restarting '%s' worker's pool", workername)
         response = self.capp.control.broadcast(
             'pool_restart', arguments={'reload': False},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
             self.write(dict(message=f"Restarting '{workername}' worker's pool"))
         else:
-            logger.error(response)
+            self.application.main_logger.error(response)
             self.set_status(403)
             reason = self.error_reason(workername, response)
             self.write(f"Failed to restart the '{workername}' pool: {reason}")
@@ -148,7 +142,7 @@ Grow worker's pool
             raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         n = self.get_argument('n', default=1, type=int)
-        logger.info("Growing '%s' worker's pool by '%s'", workername, n)
+        self.application.main_logger.info("Growing '%s' worker's pool by '%s'", workername, n)
         response = self.capp.control.pool_grow(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:

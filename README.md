@@ -80,6 +80,7 @@ custom_flower:
       - FLOWER_REDIS_DATABASE_TABLE=1
       - FLOWER_NODE_API_ENDPOINT=http://10.0.0.30:8089/
       - FLOWER_USER_DATABASE_TABLE= 10
+      - FLOWER_LOGGING_PATH=/data/flower.log
     volumes:
       - flower:/data
     links:
@@ -150,7 +151,7 @@ Config node version api endpoint
 Config logging file path:
 
 ```
- -- logging-path=flower.log
+ --logging-path=flower.log
 ```
 
 
@@ -183,14 +184,14 @@ option = self.application.new_option
 
 ### Add item on menu bar
 
-Open file ```~/flower/templates/navbar.html```
+  Open file ```~/flower/templates/navbar.html```
 
 ```
   <li class="nav-item">
         <a class="nav-link text-dark" href="{{ reverse_url('new_menu') }}">New menu</a>
   </li>
 ```
-Create new url for menu:
+    Create new url of menu:
 
 ```
 handlers = [
@@ -246,6 +247,84 @@ Html script with node js at file ```~/flower/static/js/flower.js```
 </script>
 
 ```
+
+### Config update interval time of workers
+
+Open file ``` ~/flower/static/js/flower.js ``` :
+
+```
+    var autorefresh_interval = $.urlParam('autorefresh') || 1;
+    if (autorefresh !== 0) {
+        setInterval(function () {
+            $('#workers-table').DataTable().ajax.reload(null, false);
+        }, autorefresh_interval * 5000);
+    }
+```
+
+### Login with tonardo.web.requestHandle class
+
+Using function ```get_current_use() ``` at ```~/flower/views/__init__.py ```
+
+```
+def get_current_user(self):
+        
+        if basic_auth or operator_auth or guest_auth :
+            auth_header = self.request.headers.get('Authorization', '')
+            try:
+                basic, credentials = auth_header.split()
+                credentials = b64decode(credentials.encode()).decode()
+                admin_login_success = True
+                operator_login_success = True
+                guest_login_success = True
+                
+                if basic != 'Basic':
+                    raise tornado.web.HTTPError(401) 
+                for stored_credential in basic_auth:
+                    if hmac.compare_digest(stored_credential, credentials):
+                        self.access_level = 'admin'
+                        self.application.user_name = credentials.split(':')[0]
+                        admin_login_success = True
+                        break
+                else:
+                    admin_login_success = False
+
+                if not admin_login_success and not operator_login_success and not guest_login_success:
+                    raise tornado.web.HTTPError(401)
+
+            except ValueError as exc:
+                raise tornado.web.HTTPError(401) from exc
+        
+        else:
+            raise tornado.web.HTTPError(401)
+     
+```
+
+### Logout with
+
+Create a logout request :
+```
+    function handleButtonClick() {
+      fetch('/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('result').textContent = data.message;
+        })
+        .catch(error => console.error('Error:', error));
+      window.location.reload()
+    }
+```
+
+Changing a status variable ``` self.application.login_status = False ```
+
+Reload page : ``` window.location.reload()  ```
+
+Check login status variable in function  ```get_current_use() ``` at ```~/flower/views/__init__.py ``` and Return logout status
+
 
 API
 ---

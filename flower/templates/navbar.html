@@ -83,7 +83,7 @@
         </a>
       </li>
 
-      <button onclick="handleButtonClick()">Logout</button>
+      <button onclick="handleButtonClick()">LogoutFF</button>
       <p id="result"></p>
 
       <script>
@@ -96,7 +96,6 @@
           })
             .then(response => response.json())
             .then(data => {
-              // Display the response message from the server
               document.getElementById('result').textContent = data.message;
             })
             .catch(error => console.error('Error:', error));
